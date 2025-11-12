@@ -1,0 +1,396 @@
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
+import { 
+  Store, 
+  Package, 
+  Users, 
+  CreditCard, 
+  Settings as SettingsIcon,
+  Home,
+  MapPin,
+  Phone,
+  Mail,
+  Save,
+  Plus,
+  Trash2,
+  Edit
+} from "lucide-react";
+
+export default function Settings() {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState("store");
+  
+  // Store settings state
+  const [storeSettings, setStoreSettings] = useState({
+    name: "EDPOS 레스토랑",
+    code: "STORE001",
+    address: "서울시 강남구 테헤란로 123",
+    phone: "02-1234-5678",
+    email: "contact@edpos.com",
+    taxId: "123-45-67890",
+    businessHours: {
+      open: "09:00",
+      close: "22:00"
+    }
+  });
+
+  // Payment methods state
+  const [paymentMethods, setPaymentMethods] = useState([
+    { id: 1, name: "현금", type: "cash", enabled: true, icon: "💵" },
+    { id: 2, name: "신용카드", type: "card", enabled: true, icon: "💳" },
+    { id: 3, name: "체크카드", type: "debit", enabled: true, icon: "💳" },
+    { id: 4, name: "카카오페이", type: "digital", enabled: true, icon: "📱" },
+    { id: 5, name: "네이버페이", type: "digital", enabled: false, icon: "📱" },
+    { id: 6, name: "페이코", type: "digital", enabled: false, icon: "📱" }
+  ]);
+
+  const handleStoreSettingChange = (field: string, value: string) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setStoreSettings(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent as keyof typeof prev],
+          [child]: value
+        }
+      }));
+    } else {
+      setStoreSettings(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const togglePaymentMethod = (id: number) => {
+    setPaymentMethods(prev =>
+      prev.map(method =>
+        method.id === id ? { ...method, enabled: !method.enabled } : method
+      )
+    );
+  };
+
+  const addPaymentMethod = () => {
+    const newId = Math.max(...paymentMethods.map(m => m.id)) + 1;
+    setPaymentMethods(prev => [
+      ...prev,
+      { id: newId, name: "새 결제수단", type: "other", enabled: false, icon: "💰" }
+    ]);
+  };
+
+  const removePaymentMethod = (id: number) => {
+    setPaymentMethods(prev => prev.filter(method => method.id !== id));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 relative">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, #10b981 0%, transparent 50%), 
+                           radial-gradient(circle at 75% 75%, #059669 0%, transparent 50%)`,
+          backgroundSize: '100px 100px'
+        }}></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto p-6">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <SettingsIcon className="w-8 h-8 text-green-600" />
+                {t('settings.title')}
+              </h1>
+              <p className="text-gray-600">{t('settings.description')}</p>
+            </div>
+            <Button
+              onClick={() => window.location.href = '/pos'}
+              variant="outline"
+              className="bg-white hover:bg-green-50 border-green-200 text-green-700 hover:text-green-800"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              {t('settings.backToPos')}
+            </Button>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm">
+            <TabsTrigger value="store" className="flex items-center gap-2">
+              <Store className="w-4 h-4" />
+              {t('settings.storeInfo')}
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              {t('settings.categories')}
+            </TabsTrigger>
+            <TabsTrigger value="employees" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              {t('settings.employees')}
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              {t('settings.payments')}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Store Information Tab */}
+          <TabsContent value="store">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Store className="w-5 h-5 text-green-600" />
+                    {t('settings.basicInfo')}
+                  </CardTitle>
+                  <CardDescription>{t('settings.basicInfoDesc')}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="storeName">{t('settings.storeName')}</Label>
+                    <Input
+                      id="storeName"
+                      value={storeSettings.name}
+                      onChange={(e) => handleStoreSettingChange('name', e.target.value)}
+                      placeholder={t('settings.storeNamePlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="storeCode">{t('settings.storeCode')}</Label>
+                    <Input
+                      id="storeCode"
+                      value={storeSettings.code}
+                      onChange={(e) => handleStoreSettingChange('code', e.target.value)}
+                      placeholder={t('settings.storeCodePlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="taxId">{t('settings.taxId')}</Label>
+                    <Input
+                      id="taxId"
+                      value={storeSettings.taxId}
+                      onChange={(e) => handleStoreSettingChange('taxId', e.target.value)}
+                      placeholder={t('settings.taxIdPlaceholder')}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    {t('settings.contactInfo')}
+                  </CardTitle>
+                  <CardDescription>{t('settings.contactInfoDesc')}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address">{t('settings.address')}</Label>
+                    <Textarea
+                      id="address"
+                      value={storeSettings.address}
+                      onChange={(e) => handleStoreSettingChange('address', e.target.value)}
+                      placeholder={t('settings.addressPlaceholder')}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">{t('settings.phone')}</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={storeSettings.phone}
+                      onChange={(e) => handleStoreSettingChange('phone', e.target.value)}
+                      placeholder={t('settings.phonePlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t('settings.email')}</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={storeSettings.email}
+                      onChange={(e) => handleStoreSettingChange('email', e.target.value)}
+                      placeholder={t('settings.emailPlaceholder')}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <SettingsIcon className="w-5 h-5 text-green-600" />
+                    {t('settings.operationHours')}
+                  </CardTitle>
+                  <CardDescription>{t('settings.operationHoursDesc')}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="openTime">{t('settings.openTime')}</Label>
+                      <Input
+                        id="openTime"
+                        type="time"
+                        value={storeSettings.businessHours.open}
+                        onChange={(e) => handleStoreSettingChange('businessHours.open', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="closeTime">{t('settings.closeTime')}</Label>
+                      <Input
+                        id="closeTime"
+                        type="time"
+                        value={storeSettings.businessHours.close}
+                        onChange={(e) => handleStoreSettingChange('businessHours.close', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Save className="w-4 h-4 mr-2" />
+                  {t('common.save')}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Categories Tab */}
+          <TabsContent value="categories">
+            <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-green-600" />
+                  {t('settings.categoryManagement')}
+                </CardTitle>
+                <CardDescription>{t('settings.categoryManagementDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500 mb-4">{t('settings.categoriesRedirect')}</p>
+                  <Button 
+                    onClick={() => window.location.href = '/inventory'}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {t('settings.goToInventory')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Employees Tab */}
+          <TabsContent value="employees">
+            <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-green-600" />
+                  {t('settings.employeeManagement')}
+                </CardTitle>
+                <CardDescription>{t('settings.employeeManagementDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500 mb-4">{t('settings.employeesRedirect')}</p>
+                  <Button 
+                    onClick={() => window.location.href = '/employees'}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {t('settings.goToEmployees')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Payment Methods Tab */}
+          <TabsContent value="payments">
+            <Card className="bg-white/80 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-green-600" />
+                  {t('settings.paymentMethods')}
+                </CardTitle>
+                <CardDescription>{t('settings.paymentMethodsDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">{t('settings.availablePayments')}</h3>
+                    <Button 
+                      onClick={addPaymentMethod}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t('settings.addPayment')}
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {paymentMethods.map((method) => (
+                      <div
+                        key={method.id}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          method.enabled
+                            ? 'border-green-200 bg-green-50'
+                            : 'border-gray-200 bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{method.icon}</span>
+                            <span className="font-medium">{method.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={method.enabled}
+                              onCheckedChange={() => togglePaymentMethod(method.id)}
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removePaymentMethod(method.id)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <Badge variant={method.enabled ? "default" : "secondary"}>
+                          {method.enabled ? t('settings.enabled') : t('settings.disabled')}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end mt-6">
+                    <Button className="bg-green-600 hover:bg-green-700">
+                      <Save className="w-4 h-4 mr-2" />
+                      {t('common.save')}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

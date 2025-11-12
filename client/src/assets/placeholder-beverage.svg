@@ -1,0 +1,8 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#f3f4f6"/>
+  <rect x="80" y="50" width="40" height="80" rx="5" fill="#3b82f6" opacity="0.2"/>
+  <rect x="82" y="55" width="36" height="50" fill="#3b82f6" opacity="0.4"/>
+  <circle cx="100" y="40" r="8" fill="#3b82f6" opacity="0.3"/>
+  <rect x="96" y="30" width="8" height="15" fill="#3b82f6" opacity="0.5"/>
+  <text x="100" y="160" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">음료 이미지</text>
+</svg>

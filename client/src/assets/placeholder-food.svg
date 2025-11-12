@@ -1,0 +1,10 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#f3f4f6"/>
+  <circle cx="100" cy="90" r="30" fill="#10b981" opacity="0.2"/>
+  <rect x="70" y="70" width="60" height="40" rx="8" fill="#10b981" opacity="0.3"/>
+  <circle cx="85" cy="85" r="5" fill="#10b981"/>
+  <circle cx="100" cy="85" r="5" fill="#10b981"/>
+  <circle cx="115" cy="85" r="5" fill="#10b981"/>
+  <rect x="80" y="120" width="40" height="20" rx="10" fill="#10b981" opacity="0.4"/>
+  <text x="100" y="160" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">음식 이미지</text>
+</svg>

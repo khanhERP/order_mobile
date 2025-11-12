@@ -1,0 +1,11 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#f3f4f6"/>
+  <rect x="60" y="70" width="80" height="50" rx="10" fill="#f59e0b" opacity="0.2"/>
+  <rect x="65" y="75" width="70" height="15" rx="3" fill="#f59e0b" opacity="0.4"/>
+  <rect x="65" y="95" width="70" height="15" rx="3" fill="#f59e0b" opacity="0.3"/>
+  <circle cx="75" cy="83" r="3" fill="#f59e0b"/>
+  <circle cx="90" cy="83" r="3" fill="#f59e0b"/>
+  <circle cx="105" cy="83" r="3" fill="#f59e0b"/>
+  <circle cx="120" cy="83" r="3" fill="#f59e0b"/>
+  <text x="100" y="160" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">스낵 이미지</text>
+</svg>

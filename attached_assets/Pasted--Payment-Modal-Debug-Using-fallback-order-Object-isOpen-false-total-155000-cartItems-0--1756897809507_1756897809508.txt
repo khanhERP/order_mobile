@@ -1,0 +1,43 @@
+🔍 Payment Modal Debug - Using fallback order: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderInfo: {…}, …}
+✅ PAYMENT MODAL: orderInfo is valid: 
+Object {id: "temp-1756896415710", status: undefined, tableId: undefined, total: 155000, timestamp: "2025-09-03T10:46:55.710Z"}
+All payment methods: 
+(9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Enabled payment methods: 
+(2) [{…}, {…}]
+🔍 PAYMENT MODAL PROPS DEBUG: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderForPaymentId: undefined, …}
+⚠️ WARNING: orderForPayment is undefined, using fallback
+🔍 Payment Modal Debug - Using fallback order: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderInfo: {…}, …}
+✅ PAYMENT MODAL: orderInfo is valid: 
+Object {id: "temp-1756896415711", status: undefined, tableId: undefined, total: 155000, timestamp: "2025-09-03T10:46:55.711Z"}
+All payment methods: 
+(9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Enabled payment methods: 
+(2) [{…}, {…}]
+ReceiptModal is not defined
+🔍 PAYMENT MODAL PROPS DEBUG: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderForPaymentId: undefined, …}
+⚠️ WARNING: orderForPayment is undefined, using fallback
+🔍 Payment Modal Debug - Using fallback order: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderInfo: {…}, …}
+✅ PAYMENT MODAL: orderInfo is valid: 
+Object {id: "temp-1756896415729", status: undefined, tableId: undefined, total: 155000, timestamp: "2025-09-03T10:46:55.729Z"}
+All payment methods: 
+(9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Enabled payment methods: 
+(2) [{…}, {…}]
+🔍 PAYMENT MODAL PROPS DEBUG: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderForPaymentId: undefined, …}
+⚠️ WARNING: orderForPayment is undefined, using fallback
+🔍 Payment Modal Debug - Using fallback order: 
+Object {isOpen: false, total: 155000, cartItems: 0, orderForPayment: null, orderInfo: {…}, …}
+✅ PAYMENT MODAL: orderInfo is valid: 
+Object {id: "temp-1756896415730", status: undefined, tableId: undefined, total: 155000, timestamp: "2025-09-03T10:46:55.730Z"}
+All payment methods: 
+(9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Enabled payment methods: 
+(2) [{…}, {…}]
+ReceiptModal is not defined

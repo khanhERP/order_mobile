@@ -1,0 +1,230 @@
+    var handovers = new List<HandoverLURCDto>();
+    var listProduct = new List<Product>();
+    var listContract = new List<Contract>();
+    var errorMessages = new Dictionary<int, List<string>>(); // Chuyển sang list để gộp nhiều lỗi
+
+    using var stream = new MemoryStream();
+    await file.CopyToAsync(stream);
+    using var workbook = new XLWorkbook(stream);
+    var worksheet = workbook.Worksheet(1);
+    var rows = worksheet.RowsUsed().Skip(2); // Bỏ qua tiêu đề
+
+    var list_project = await _unitOfWork.Repository<Project>().GetAllAsync().ToListAsync();
+    var list_product = await _unitOfWork.Repository<Product>().GetAllAsync().ToListAsync();
+    var list_contract = await _unitOfWork.Repository<Contract>().TableAll.ToListAsync();
+
+    var rowCount = worksheet.LastRowUsed().RowNumber(); // chỉ lấy đến dòng cuối có dữ liệu
+    int rowNumber = 9; // Bắt đầu từ dòng 9 nếu bỏ tiêu đề (1,2 là tiêu đề)
+    for (int i = 9; i <= rowCount; i++, rowNumber++)
+    {
+        var row = worksheet.Row(i);
+        var rowErrors = new List<string>();
+        string projectCode = string.Empty, productCode = string.Empty, remark = string.Empty;
+        int type = 0;
+        DateTime date = default;
+
+        // 👉 Check nếu cả 5 cột đều trống thì dừng đọc luôn
+        bool isAllEmpty = string.IsNullOrWhiteSpace(row.Cell(1).GetString()) &&
+                          string.IsNullOrWhiteSpace(row.Cell(2).GetString()) &&
+                          string.IsNullOrWhiteSpace(row.Cell(4).GetString()) &&
+                          string.IsNullOrWhiteSpace(row.Cell(5).GetString());
+
+        if (isAllEmpty)
+            break;
+
+        try
+        {
+            // Cột 1: PJ Code
+            projectCode = row.Cell(1).GetString().Trim();
+            if (string.IsNullOrEmpty(projectCode))
+                rowErrors.Add(_localizer["project"] + " " + _localizer["isRequired"]);
+
+            // Cột 2: Product Code
+            productCode = row.Cell(2).GetString().Trim();
+            if (string.IsNullOrEmpty(productCode))
+                rowErrors.Add(_localizer["product"] + " " + _localizer["isRequired"]);
+
+            // Cột 3: Type
+            if (!int.TryParse(row.Cell(7).GetString().Trim(), out type))
+                rowErrors.Add(_localizer["category-type"] + " " + _localizer["valid-type"]);
+
+            // Cột 4: Date
+            if (!DateTime.TryParseExact(row.Cell(4).GetString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+            {
+                rowErrors.Add(_localizer["date"] + " " + _localizer["valid-type"] + " (dd/MM/yyyy)");
+            }
+
+            // Cột 5: Remark
+            remark = row.Cell(5).GetString().Trim();
+            if (remark.Length > 500)
+                rowErrors.Add(_localizer["remark"] + " " + _localizer["max-lenght-500"]);
+
+            if (!rowErrors.Any())
+            {
+                var project = list_project.FirstOrDefault(w => w.ProjectCode == projectCode);
+                var product = list_product.FirstOrDefault(w => w.ProductCode == productCode);
+
+                if (project == null)
+                    rowErrors.Add(_localizer["project-not-found"]);
+                if (product == null)
+                    rowErrors.Add(_localizer["product-not-exists"]);
+
+                if (project != null && product != null)
+                {
+                    var contract = list_contract.FirstOrDefault(w => w.ProductId == product.Id && w.ProjectId == project.Id
+                    && (w.ContractStatus == (int)EnumConTractStatus.Signed || w.ContractStatus == (int)EnumConTractStatus.Tranfer)
+                    && w.TransactionContractType == (int)EnumConTract.SPC);
+
+                    //var thanhLyHDMB = list_contract.Where(w => w.TransactionContractType == (int)EnumConTract.SPCContractLiquidation).FirstOrDefault();
+                    if (contract == null)
+                    {
+                        rowErrors.Add(_localizer["product-not-create-contract"]);
+                    }
+                    if (contract != null && contract.SigningDateCompleted.HasValue && contract.SigningDateCompleted.Value.Date > date)
+                    {
+                        rowErrors.Add(_localizer["handover-date-validate"]);
+                    }
+                    if (contract != null && !contract.HandoverDate.HasValue && type != (int)EnumHandoverStatus.SignedHO)
+                    {
+                        rowErrors.Add(_localizer["handover-date-not-exits"]);
+                    }
+                    // Set status based on handover type
+                    //switch (type)
+                    //{
+                    //    case (int)EnumHandoverType.HandoverDueDate:
+                    //        product.Status = (int)EnumProductStatus.WaitingForHandover;
+                    //        break;
+                    //    case (int)EnumHandoverType.HandoverActual:
+                    //        product.Status = (int)EnumProductStatus.Handover;
+                    //        break;
+                    //    case (int)EnumHandoverType.SubmittedLURC:
+                    //        product.Status = (int)EnumProductStatus.WorkingLURC;
+                    //        break;
+                    //    case (int)EnumHandoverType.HaveLURC:
+                    //        product.Status = (int)EnumProductStatus.HaveLURC;
+                    //        break;
+                    //}
+
+                    //// Override if there's liquidation info
+                    //if (thanhLyHDMB != null)
+                    //{
+                    //    if (thanhLyHDMB.LiquidationType == (int)EnumLiquidationType.HandoverLURC)
+                    //    {
+                    //        product.Status = (int)EnumProductStatus.Finish;
+                    //    }
+                    //    else if (thanhLyHDMB.LiquidationType == (int)EnumLiquidationType.ReturningDocuments)
+                    //    {
+                    //        product.Status = (int)EnumProductStatus.ReturnDoc;
+                    //    }
+                    //}
+
+                    //listProduct.Add(product);
+                    if (contract != null)
+                    {
+                        handovers.Add(new HandoverLURCDto
+                        {
+                            Id = Guid.NewGuid(),
+                            ProjectId = project.Id,
+                            ProductId = product.Id,
+                            ContractId = contract?.Id,
+                            Type = type,
+                            Date = date,
+                            Remark = remark
+                        });
+                    }
+                    
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            rowErrors.Add("Lỗi không xác định: " + ex.Message);
+        }
+
+        if (rowErrors.Any())
+        {
+            errorMessages[rowNumber] = rowErrors;
+        }
+    }
+    if (listProduct.Any())
+    {
+        //await _unitOfWork.Repository<Product>().UpdateRangeAsync(listProduct);
+    }
+
+    if (handovers.Any())
+    {
+        // Lấy toàn bộ ContractId + Type đã có trong DB trước (để tránh query nhiều lần)
+        var contractIds = handovers.Select(h => h.ContractId).Distinct().ToList();
+        var types = handovers.Select(h => h.Type).Distinct().ToList();
+
+        var existingRecords = await _unitOfWork.Repository<HandoverLURC>()
+            .TableAll
+            .Where(x => contractIds.Contains(x.ContractId) && types.Contains(x.Type))
+            .ToListAsync();
+
+        // Tạo dictionary để tra nhanh
+        var existingDict = existingRecords.ToDictionary(
+            x => (x.ContractId, x.Type),
+            x => x
+        );
+
+        var listAdd = new List<HandoverLURC>();
+        var listUpdate = new List<HandoverLURC>();
+
+        foreach (var item in handovers)
+        {
+            var contractUpdate = list_contract.Where(w => w.Id == item.ContractId && w.TransactionContractType == (int)EnumConTract.SPC).FirstOrDefault();
+            if (contractUpdate != null)
+            {
+                if (item.Type == (int)EnumHandoverStatus.SignedHO)
+                {
+                    contractUpdate.HandoverDate = item.Date;
+                }
+                if (item.Type == (int)EnumHandoverStatus.IssuingDocDeadlineDate)
+                {
+                    contractUpdate.IssuingDocDeadlineDate = item.Date;
+                }
+                if (item.Type == (int)EnumHandoverStatus.ReadyToApply)
+                {
+                    contractUpdate.ReadyToApplyDate = item.Date;
+                }
+                listContract.Add(contractUpdate);
+            }
+
+            var key = ((Guid)item.ContractId, item.Type);
+
+            if (existingDict.TryGetValue(key, out var existing))
+            {
+                // Nếu đã có -> update Date + Remark
+                existing.Date = item.Date;
+                existing.Remark = item.Remark;
+                listUpdate.Add(existing);
+            }
+            else
+            {
+                // Nếu chưa có -> thêm mới
+                listAdd.Add(_mapper.Map<HandoverLURC>(item));
+            }
+        }
+        // Thêm mới nếu có
+        if (listAdd.Any())
+            await _unitOfWork.Repository<HandoverLURC>().AddRangeAsync(listAdd);
+
+        // Update nếu có
+        if (listUpdate.Any())
+            await _unitOfWork.Repository<HandoverLURC>().UpdateRangeAsync(listUpdate);
+        if (listContract.Any())
+        {
+            await _unitOfWork.Repository<Contract>().UpdateRangeAsync(listContract);
+        }
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    MemoryStream errorFile = null;
+    if (errorMessages.Any())
+    {
+        errorFile = GenerateErrorExcel(file, errorMessages);
+    }
+
+    return (handovers, listProduct, errorFile);
+}

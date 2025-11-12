@@ -1,0 +1,82 @@
+[Table("Agents")]
+public class Agent : EntityBase
+{
+    public required string Code { get; set; }
+    public required string Name { get; set; }
+    public bool IsBlackList { get; set; }
+    [StringLength(500)]
+    public string? Address { get; set; }
+    /// <summary>
+    /// Năm thành lập
+    /// </summary>
+    public int EstablishedYear { get; set; }
+    [StringLength(125)]
+    public string? Representative { get; set; }
+    public DateTime? BirthDayRepresentative { get; set; }
+    [StringLength(20)]
+    public string? RepresentativeId { get; set; }
+    public string? PJMain { get; set; }
+    [StringLength(500)]
+    /// <summary>
+    /// Kinh nghiệm làm việc
+    /// </summary>
+    public string? WorkExperience { get; set; }
+    [StringLength(120)]
+    /// <summary>
+    /// Số lượng nhân viên
+    /// </summary>
+    public string? CountEmployee { get; set; }
+    [StringLength(250)]
+    /// <summary>
+    /// Tình trạng cấp phép đại lý
+    /// </summary>
+    public string? LicenseAgentStatus { get; set; }
+    [StringLength(250)]
+    public string? ManagerFullName { get; set; }
+    [StringLength(20)]
+    public string? ManagerPhoneNumber { get; set; }
+    [StringLength(250)]
+    public string? AccountantFullName { get; set; }
+    [StringLength(20)]
+    public string? AccountantPhoneNumber { get; set; }
+    [StringLength(120)]
+    public string? TaxCode { get; set; }
+    [StringLength(2000)]
+    public string? Remark { get; set; }
+    public string? FileManagerIds { get; set; }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal AmountCharterCapitals { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? IssueDate { get; set; }
+    [StringLength(500)]
+    public string? IssueBy { get; set; }
+    [StringLength(120)]
+    public string? Email { get; set; }
+    
+    /// <summary>
+    /// Số tài khoản
+    /// </summary>
+    [StringLength(100)]
+    public string? AccountNumber { get; set; }
+    /// <summary>
+    /// Tên tài khoản
+    /// </summary>
+    [StringLength(255)]
+    public string? AccountName { get; set; }
+    /// <summary>
+    /// Tên ngân hàng
+    /// </summary>
+    [StringLength(255)]
+    public string? BankName { get; set; }
+    /// <summary>
+    /// Chi nhánh
+    /// </summary>
+    [StringLength(255)]
+    public string? BankBranch { get; set; }
+
+    public virtual ICollection<AgentContract> AgentContracts { get; set; } = new List<AgentContract>();
+    public virtual ICollection<AgentCharterCapital> AgentCharterCapitals { get; set; } = new List<AgentCharterCapital>();
+
+    //public int ApproveStatus { get; set; }
+    //public DateTime? ApprovedDate { get; set; }
+}

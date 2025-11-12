@@ -1,0 +1,153 @@
+public class PublishInvoiceRequest
+{
+    public LoginRequest Login { get; set; }
+
+    /// <summary>
+    /// ID đơn hàng cũ cần thay thế, điều chỉnh
+    /// </summary>
+    public string? transactionID_old { get; set; }
+    /// ID đơn hàng (Minvoice dùng để điều chỉnh)
+    public string? transactionID { get; set; }
+    //So van ban
+    public string? numbtext { get; set; }
+    /// <summary>
+    ///  Mã đơn hàng/ Số chứng từ (Wininvoice yêu cầu bắt buộc)
+    /// </summary>
+    public string? invRef { get; set; }
+
+    //Số đơn hàng Orion cần quản lý => sẽ map vào so_benh_an của Minvoice để hiển thị trên hóa đơn
+    public string? poNo { get; set; }
+
+
+
+
+    /// <summary>
+    ///  Tổng tiền hàng  trước thuế (Wininvoice yêu cầu bắt buộc)
+    /// </summary>
+    public decimal? invSubTotal {  get; set; }
+
+    /// <summary>
+    /// BẮT BUỘC
+    /// "THUẾ SUẤT TRÊN HÓA ĐƠN (trong tr/h mẫu hóa đơn thuộc loại nhiều thuế suất thì thuế suất hóa đơn (invVATRate) sẽ bỏ qua, lấy theo thuế suất của từng sản phẩm, 
+    // ngược lại tr/h mẫu hóa đơn thuộc loại một thuế suất thì sẽ lấy theo invVATRate này, và thuế suất ở các sản phẩm bắt buộc phải = giá trị này)"
+    //  Lưu ý: Với trường hợp
+    //  "Không chịu thuế": Để giá trị  -1
+    //  "Không kê khai nộp thuế: Để giá trị -2
+    /// </summary>
+    public decimal? invVatRate { get; set; }
+
+    /// <summary>
+    /// tổng tiền thuế
+    /// </summary>
+    public decimal? invVatAmount {  get; set; }
+
+    //Tổng tiền chiết khấu
+    public decimal? invDiscAmount { get; set; }
+
+    /// <summary>
+    /// tổng tiền hàng + tiền thuế
+    /// </summary>
+    public decimal? invTotalAmount {  get; set; }
+
+
+    /// <summary>
+    /// phương thức thanh toán (TM, CK, TM/CK)
+    /// </summary>
+    public string? PaidTp { get; set; }
+
+    /// <summary>
+    /// Ghi chú
+    /// </summary>
+    public string? Note { get; set; }
+    /// <summary>
+    /// ghi chú khác
+    /// </summary>
+    public string? Extra1 { get; set; }
+
+    /// <summary>
+    ///số hóa đơn
+    /// </summary>
+    public string? HdNo { get; set; }
+
+    /// <summary>
+    ///ngày phát hành
+    /// </summary>
+    public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+
+    /// <summary>
+    ///  Mẫu số của hóa đơn (01GTKT0/001, … theo tt32 hoặc 1,2 ,.. với hóa đơn theo TT78) (Wininvoice yêu cầu bắt buộc)
+    /// </summary>
+    public string? clsfNo { get; set; }
+    /// <summary>
+    ///Ký hiệu hóa đơn
+    /// </summary>
+    public string? SpcfNo { get; set; }
+    /// <summary>
+    /// Ký hiệu mẫu hóa đơn
+    /// </summary>
+    public string? TemplateCode { get; set; }
+
+    /// <summary>
+    /// Sinvoice người mua có lấy hóa đơn không (0 có lấy, 1 không lấy)
+    /// </summary>
+    public int buyerNotGetInvoice { get; set; } = 0;
+
+    /// <summary>
+    ///Loại tiền
+    /// </summary>
+    public string ExchCd { get; set; } = "VND";
+    /// <summary>
+    ///tỷ giá
+    /// </summary>
+    public decimal ExchRt { get; set; } = decimal.One;
+
+    /// <summary>
+    /// Tài khoản ngân hàng bên bán
+    /// </summary>
+    public string? BankAccount { get; set; }
+    /// <summary>
+    /// Ngân hàng bên bán
+    /// </summary>
+    public string? BankName { get; set; }
+    /// <summary>
+    /// Bổ sung đối với hóa đơn xuất kho
+    /// </summary>
+    /// 
+    // lddnbo: Lệnh điều động nội bộ
+    public string? dispatchID { get; set; }
+    // tnvchuyen: Tên người vận chuyển
+    public string? transName { get; set; }
+    //ptvchuyen: Phương tiện vận chuyển
+    public string? transType { get; set; }
+    //dckhoxuat: Địa chỉ kho xuất
+    public string? exportAdd { get; set; }
+    //dckhonhap: Địa chỉ kho nhập
+    public string? importAdd { get; set; }
+    //sohopdong: Hợp đồng vận chuyển
+    public string? contractNo { get; set; }
+    //hvtnxhang: Tên người xuất hàng
+    public string? shipper{ get; set; }
+    //hdktso: Hợp đồng kinh tế số(Bắt buộc đối với PXK hàng gửi bán đại lý)
+    public string? econContNo { get; set; }
+    //hdktngay: Hợp đồng kinh tế ngày(Bắt buộc với phiếu xuất kho hàng gửi bán đại lý)
+    public string? econContDt { get; set; }
+
+    public string? Ikey { get; set; }
+    //hdktngay: Key của hóa đơn từ web hóa đơn trả về
+    public string? CertString { get; set; }
+    //hdktngay: Chuỗi Base64 của chứng thư
+
+    /// <summary>
+    /// Thông tin khách hàng
+    /// </summary>
+    public Customer? Customer { get; set; }
+    /// <summary>
+    /// thoong tin sản phẩm
+    /// </summary>
+    public List<Product>? Products { get; set; }
+
+    //WinInvoice
+
+
+}
