@@ -24,6 +24,25 @@ import {
   Printer,
 } from "lucide-react";
 import type { Table, Product, Order, OrderItem } from "@shared/schema";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertDialogPortal } from "@radix-ui/react-alert-dialog";
 
 interface MobileTableViewProps {
   tableId: number;
@@ -49,8 +68,48 @@ export function MobileTableView({
     "products" | "order" | "pending-orders"
   >("products");
   const [tempCart, setTempCart] = useState<
-    { productId: number; quantity: number; product: Product }[]
+    {
+      productId: number;
+      quantity: number;
+      product: Product;
+      discount?: number;
+      discountType?: "percent" | "amount" | "vnd";
+    }[]
   >([]);
+  const [orderDiscount, setOrderDiscount] = useState(0);
+  const [orderDiscountType, setOrderDiscountType] = useState<
+    "percent" | "amount" | "vnd"
+  >("vnd");
+  const [isCartExpanded, setIsCartExpanded] = useState(true);
+  const [discountSource, setDiscountSource] = useState<"item" | "order" | null>(
+    null,
+  );
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [showDeleteItemDialog, setShowDeleteItemDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [deleteItemNote, setDeleteItemNote] = useState("");
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [itemToDeleteWithNote, setItemToDeleteWithNote] = useState<any>(null);
+  const [deleteNote, setDeleteNote] = useState("");
+  const [showDecreaseNoteDialog, setShowDecreaseNoteDialog] = useState(false);
+  const [itemToDecreaseWithNote, setItemToDecreaseWithNote] = useState<any>(null);
+  const [decreaseNote, setDecreaseNote] = useState("");
+  const [decreaseQuantity, setDecreaseQuantity] = useState(1);
+
+  // Debug dialog state
+  useEffect(() => {
+    console.log("🔍 Delete dialog state changed:", {
+      showDeleteConfirmDialog,
+      hasItem: !!itemToDeleteWithNote,
+      itemName: itemToDeleteWithNote?.productName,
+      deleteNote
+    });
+
+    if (showDeleteConfirmDialog) {
+      console.log("✅ Dialog should be visible now!");
+    }
+  }, [showDeleteConfirmDialog, itemToDeleteWithNote, deleteNote]);
 
   // Fetch table data
   const { data: table } = useQuery<Table>({
@@ -229,25 +288,24 @@ export function MobileTableView({
         tempCartLength: tempCart.length,
         hasActiveOrder: !!activeOrder,
         activeOrderId: activeOrder?.id,
+        orderDiscount,
+        orderDiscountType,
       });
 
+      const sumOfDiscount = tempCart.reduce((sum, item) => {
+        return sum + (item.discount || 0);
+      }, 0);
+
       if (!activeOrder) {
-        // Calculate totals
-        const subtotal = tempCart.reduce((sum, item) => {
-          return sum + parseFloat(item.product.price) * item.quantity;
-        }, 0);
-
-        const tax = tempCart.reduce((sum, item) => {
-          if (item.product.afterTaxPrice) {
-            const afterTaxPrice = parseFloat(item.product.afterTaxPrice);
-            const price = parseFloat(item.product.price);
-            const taxPerUnit = afterTaxPrice - price;
-            return sum + taxPerUnit * item.quantity;
-          }
-          return sum;
-        }, 0);
-
-        const total = subtotal + tax;
+        // Calculate order discount in VND
+        let orderDiscountVnd = 0;
+        if (orderDiscountType === "percent") {
+          orderDiscountVnd = Math.round(
+            (tempCartSubtotalBeforeDiscount * orderDiscount) / 100,
+          );
+        } else {
+          orderDiscountVnd = orderDiscount > 0 ? orderDiscount : sumOfDiscount;
+        }
 
         // Create new order with all items
         const orderData = {
@@ -257,17 +315,39 @@ export function MobileTableView({
           status: "pending",
           paymentStatus: "pending",
           salesChannel: "table",
-          subtotal: subtotal.toFixed(2),
-          tax: tax.toFixed(2),
-          total: total.toFixed(2),
+          subtotal: tempCartSubtotal.toFixed(2),
+          tax: tempCartTax.toFixed(2),
+          discount: orderDiscountVnd.toFixed(2),
+          total: tempCartTotal.toFixed(2),
         };
 
-        const items = tempCart.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity.toString(),
-          unitPrice: item.product.price,
-          total: (parseFloat(item.product.price) * item.quantity).toFixed(2),
-        }));
+        const items = tempCart.map((item) => {
+          // Calculate item discount in VND
+          let itemDiscountVnd = 0;
+          if (item.discount && item.discount > 0) {
+            if (item.discountType === "percent") {
+              const itemSubtotal =
+                parseFloat(item.product.price) * item.quantity;
+              itemDiscountVnd = Math.round(
+                (itemSubtotal * item.discount) / 100,
+              );
+            } else {
+              itemDiscountVnd = item.discount;
+            }
+          }
+
+          const itemSubtotal = parseFloat(item.product.price) * item.quantity;
+          const itemTotal = Math.max(0, itemSubtotal - itemDiscountVnd);
+
+          return {
+            productId: item.productId,
+            quantity: item.quantity.toString(),
+            unitPrice: item.product.price,
+            discount: itemDiscountVnd.toFixed(2),
+            total: itemTotal.toFixed(2),
+            tax: (itemSubtotal * (item.product.taxRate || 0)).toFixed(2),
+          };
+        });
 
         console.log("📝 Creating new order", { orderData, items });
         return apiRequest("POST", "https://order-mobile-be.onrender.com/api/orders", { order: orderData, items });
@@ -275,12 +355,33 @@ export function MobileTableView({
         console.log("➕ Adding items to existing order", activeOrder.id);
 
         // Use the new endpoint to add items to existing order
-        const items = tempCart.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: item.product.price,
-          total: (parseFloat(item.product.price) * item.quantity).toFixed(2),
-        }));
+        const items = tempCart.map((item) => {
+          // Calculate item discount in VND
+          let itemDiscountVnd = 0;
+          if (item.discount && item.discount > 0) {
+            if (item.discountType === "percent") {
+              const itemSubtotal =
+                parseFloat(item.product.price) * item.quantity;
+              itemDiscountVnd = Math.round(
+                (itemSubtotal * item.discount) / 100,
+              );
+            } else {
+              itemDiscountVnd = item.discount;
+            }
+          }
+
+          const itemSubtotal = parseFloat(item.product.price) * item.quantity;
+          const itemTotal = Math.max(0, itemSubtotal - itemDiscountVnd);
+
+          return {
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.product.price,
+            discount: itemDiscountVnd.toFixed(2),
+            total: itemTotal.toFixed(2),
+            tax: (itemSubtotal * (item.product.taxRate || 0)).toFixed(2),
+          };
+        });
 
         console.log("📦 Items to add:", items);
 
@@ -295,6 +396,40 @@ export function MobileTableView({
 
         const result = await response.json();
         console.log("✅ Items added successfully:", result);
+
+        // Calculate total discount from new items
+        const totalNewItemsDiscount = items.reduce((sum, item) => {
+          return sum + parseFloat(item.discount);
+        }, 0);
+
+        // Get current order discount
+        const currentOrderDiscount = parseFloat(activeOrder.discount || "0");
+
+        console.log("💰 Discount check:", {
+          currentOrderDiscount,
+          totalNewItemsDiscount,
+          shouldRecalculate: Math.abs(currentOrderDiscount - totalNewItemsDiscount) > 0.01
+        });
+
+        // Only recalculate if order discount differs from sum of item discounts
+        // This prevents redistributing discounts that are already correctly set
+        if (Math.abs(currentOrderDiscount - totalNewItemsDiscount) > 0.01) {
+          await apiRequest(
+            "POST",
+            `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+            {},
+          );
+          console.log("✅ Order totals recalculated");
+        } else {
+          console.log("⏭️ Skipping recalculation - discount already matches item discounts");
+          // Still need to update order totals without redistributing discounts
+          await apiRequest(
+            "POST",
+            `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+            {},
+          );
+          console.log("✅ Order totals updated");
+        }
 
         return result;
       }
@@ -322,6 +457,9 @@ export function MobileTableView({
       }
 
       setTempCart([]);
+      setOrderDiscount(0);
+      setOrderDiscountType("vnd");
+      setDiscountSource(null);
       setViewMode("order");
     },
     onError: (error: any) => {
@@ -339,10 +477,106 @@ export function MobileTableView({
       return sum + parseFloat(item.total);
     }, 0) || 0;
 
-  // Calculate temp cart total
-  const tempCartTotal = tempCart.reduce((sum, item) => {
-    return sum + parseFloat(item.product.price) * item.quantity;
+  // Calculate subtotal (before tax and discount)
+  const { data: storeSettings } = useQuery({
+    queryKey: ["https://order-mobile-be.onrender.com/api/store-settings"],
+  });
+  const priceIncludesTax = storeSettings?.priceIncludesTax ?? true;
+
+  // Calculate subtotal (before tax and discount)
+  const tempCartSubtotalBeforeDiscount = tempCart.reduce((sum, item) => {
+    const basePrice = parseFloat(item.product.price);
+    const quantity = item.quantity;
+    const taxRate = item.product.taxRate
+      ? parseFloat(item.product.taxRate) / 100
+      : 0;
+
+    if (priceIncludesTax && taxRate > 0) {
+      const itemSubtotal = Math.round((basePrice / (1 + taxRate)) * quantity);
+      return sum + itemSubtotal;
+    } else {
+      const itemSubtotal = basePrice * quantity;
+      return sum + itemSubtotal;
+    }
   }, 0);
+
+  // Calculate total discounts - use EITHER item discounts OR order discount, not both
+  let totalDiscount = 0;
+
+  // Calculate sum of all item discounts
+  const tempCartItemDiscounts = tempCart.reduce((sum, item) => {
+    const basePrice = parseFloat(item.product.price);
+    const quantity = item.quantity;
+    const itemDiscount = item.discount || 0;
+
+    if (item.discountType === "percent") {
+      return sum + Math.round((basePrice * quantity * itemDiscount) / 100);
+    } else {
+      return sum + itemDiscount;
+    }
+  }, 0);
+
+  // Calculate order-level discount
+  let tempCartOrderDiscount = 0;
+  if (orderDiscountType === "percent") {
+    tempCartOrderDiscount = Math.round(
+      (tempCartSubtotalBeforeDiscount * orderDiscount) / 100,
+    );
+  } else {
+    tempCartOrderDiscount = orderDiscount;
+  }
+
+  // Determine which discount to use based on source
+  if (discountSource === "order" && orderDiscount > 0) {
+    // User manually entered order discount - use it
+    totalDiscount = tempCartOrderDiscount;
+  } else if (discountSource === "item" || tempCartItemDiscounts > 0) {
+    // User manually entered item discounts - use sum of item discounts
+    totalDiscount = tempCartItemDiscounts;
+  } else if (orderDiscount > 0) {
+    // Fallback to order discount
+    totalDiscount = tempCartOrderDiscount;
+  }
+
+  // Calculate subtotal after discounts
+  const tempCartSubtotal = Math.max(
+    0,
+    tempCartSubtotalBeforeDiscount - totalDiscount,
+  );
+
+  // Calculate tax after discounts
+  const tempCartTax = tempCart.reduce((sum, item) => {
+    const basePrice = parseFloat(item.product.price);
+    const quantity = item.quantity;
+    const taxRate = item.product.taxRate
+      ? parseFloat(item.product.taxRate) / 100
+      : 0;
+    const itemDiscount = item.discount || 0;
+
+    if (taxRate > 0) {
+      let itemTotal = basePrice * quantity;
+
+      // Apply item discount
+      if (item.discountType === "percent") {
+        itemTotal -= Math.round((itemTotal * itemDiscount) / 100);
+      } else {
+        itemTotal -= itemDiscount;
+      }
+
+      if (priceIncludesTax) {
+        const giaGomThue = itemTotal;
+        const tamTinh = Math.round(giaGomThue / (1 + taxRate));
+        const itemTax = giaGomThue - tamTinh;
+        return sum + itemTax;
+      } else {
+        const itemTax = Math.round(itemTotal * taxRate);
+        return sum + itemTax;
+      }
+    }
+    return sum;
+  }, 0);
+
+  const tempCartTotal = Math.round(tempCartSubtotal + tempCartTax);
 
   // Fetch all unpaid orders for this table
   const { data: pendingOrders } = useQuery<Order[]>({
@@ -534,12 +768,40 @@ export function MobileTableView({
                 </span>
               </div>
               <Separator />
+              {activeOrder.discount && parseFloat(activeOrder.discount) > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{t("common.discount")}:</span>
+                  <span className="font-medium text-red-600">
+                    -
+                    {Math.floor(
+                      parseFloat(activeOrder.discount),
+                    ).toLocaleString("vi-VN")}{" "}
+                    ₫
+                  </span>
+                </div>
+              )}
+              {activeOrder.tax && parseFloat(activeOrder.tax) > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{t("common.tax")}:</span>
+                  <span className="font-medium">
+                    {Math.floor(parseFloat(activeOrder.tax)).toLocaleString(
+                      "vi-VN",
+                    )}{" "}
+                    ₫
+                  </span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">
                   {t("tables.total")}
                 </span>
                 <span className="text-lg font-bold text-blue-600">
-                  {Math.floor(orderTotal).toLocaleString("vi-VN")} ₫
+                  {(() => {
+                    return Math.floor(
+                      parseFloat(activeOrder.total),
+                    ).toLocaleString("vi-VN");
+                  })()}{" "}
+                  ₫
                 </span>
               </div>
             </CardContent>
@@ -610,105 +872,42 @@ export function MobileTableView({
 
                     {/* Quantity controls and actions */}
                     <div className="space-y-2 pt-2 border-t">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={async () => {
-                              const newQuantity = parseFloat(item.quantity) - 1;
-                              if (newQuantity <= 0) {
-                                // Check if this is the last item in the order
-                                if (orderItems && orderItems.length <= 1) {
-                                  toast({
-                                    title: t("tables.cannotDelete"),
-                                    description: t(
-                                      "tables.cannotDeleteLastItem",
-                                    ),
-                                    variant: "destructive",
-                                  });
-                                  return;
-                                }
-
-                                // Delete item if quantity would be 0
-                                try {
-                                  await apiRequest(
-                                    "DELETE",
-                                    `https://order-mobile-be.onrender.com/api/order-items/${item.id}`,
-                                  );
-                                  await refetchOrderItems();
-                                  
-                                  // Recalculate order totals
-                                  await apiRequest(
-                                    "POST",
-                                    `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
-                                    {}
-                                  );
-                                  
-                                  // Invalidate orders cache
-                                  await queryClient.invalidateQueries({
-                                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
-                                  });
-                                } catch (error) {
-                                  toast({
-                                    title: t("common.error"),
-                                    description: t("tables.deleteItemError"),
-                                    variant: "destructive",
-                                  });
-                                }
-                              } else {
-                                // Update quantity
-                                const unitPrice = parseFloat(item.unitPrice);
-                                const newTotal = (unitPrice * newQuantity).toFixed(2);
-                                
-                                try {
-                                  await apiRequest(
-                                    "PUT",
-                                    `https://order-mobile-be.onrender.com/api/order-items/${item.id}`,
-                                    {
-                                      quantity: newQuantity,
-                                      total: newTotal,
-                                    },
-                                  );
-                                  await refetchOrderItems();
-                                  
-                                  // Recalculate order totals
-                                  await apiRequest(
-                                    "POST",
-                                    `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
-                                    {}
-                                  );
-                                  
-                                  // Invalidate orders cache
-                                  await queryClient.invalidateQueries({
-                                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
-                                  });
-                                } catch (error) {
-                                  toast({
-                                    title: t("common.error"),
-                                    description: t(
-                                      "tables.updateQuantityError",
-                                    ),
-                                    variant: "destructive",
-                                  });
-                                }
-                              }
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              // Show dialog to input note for decrease
+                              console.log("➖ Decrease button clicked for item:", item);
+                              setItemToDecreaseWithNote(item);
+                              setShowDecreaseNoteDialog(true);
+                              setDecreaseNote("");
+                              setDecreaseQuantity(1);
                             }}
-                            className="h-8 px-2"
+                            className="h-8 px-3"
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
-                          <span className="font-medium text-base px-3 min-w-[40px] text-center">
+                          <div className="font-medium text-base px-3 min-w-[50px] text-center pointer-events-none select-none">
                             {parseFloat(item.quantity)}
-                          </span>
+                          </div>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log("➕ Increase button clicked for item:", item);
+
                               const newQuantity = parseFloat(item.quantity) + 1;
                               const unitPrice = parseFloat(item.unitPrice);
-                              const newTotal = (unitPrice * newQuantity).toFixed(2);
-                              
+                              const newTotal = (
+                                unitPrice * newQuantity
+                              ).toFixed(2);
+
                               try {
                                 await apiRequest(
                                   "PUT",
@@ -719,14 +918,14 @@ export function MobileTableView({
                                   },
                                 );
                                 await refetchOrderItems();
-                                
+
                                 // Recalculate order totals
                                 await apiRequest(
                                   "POST",
                                   `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
-                                  {}
+                                  {},
                                 );
-                                
+
                                 // Invalidate orders cache to refresh totals
                                 await queryClient.invalidateQueries({
                                   queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
@@ -739,44 +938,33 @@ export function MobileTableView({
                                 });
                               }
                             }}
-                            className="h-8 px-2"
+                            className="h-8 px-3"
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            // Check if this is the last item in the order
-                            if (orderItems && orderItems.length <= 1) {
-                              toast({
-                                title: "Không thể xóa",
-                                description:
-                                  "Không thể xóa món cuối cùng trong đơn hàng. Vui lòng hủy đơn hàng nếu muốn xóa tất cả.",
-                                variant: "destructive",
-                              });
-                              return;
-                            }
+                      </div>
 
-                            try {
-                              await apiRequest(
-                                "DELETE",
-                                `https://order-mobile-be.onrender.com/api/order-items/${item.id}`,
-                              );
-                              await refetchOrderItems();
-                            } catch (error) {
-                              toast({
-                                title: "Lỗi",
-                                description: "Không thể xóa món",
-                                variant: "destructive",
-                              });
-                            }
+                      {/* Delete button on separate row for better accessibility */}
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log("🗑️ Delete button onClick triggered for item:", item);
+                            console.log("🗑️ Setting itemToDeleteWithNote:", item);
+                            console.log("🗑️ Setting showDeleteConfirmDialog to true");
+                            setItemToDeleteWithNote(item);
+                            setDeleteNote("");
+                            setShowDeleteConfirmDialog(true);
+                            console.log("🗑️ Dialog state should now be open");
                           }}
-                          className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="inline-flex items-center justify-center gap-2 h-8 px-3 text-sm font-medium rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors touch-manipulation active:bg-red-100"
+                          type="button"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </Button>
+                          Xóa món
+                        </button>
                       </div>
 
                       {/* Send to Kitchen button - only show if status is pending */}
@@ -1050,91 +1238,496 @@ export function MobileTableView({
 
       {/* Temporary Cart Preview */}
       {tempCart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20 p-4">
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-sm">
-                {t("tables.cart")} ({tempCart.length} {t("tables.items")})
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTempCart([])}
-                className="text-red-600"
-              >
-                <Trash2 className="w-4 h-4 mr-1" />
-                {t("tables.clearCart")}
-              </Button>
+        <div
+          className={`fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20 transition-all duration-300 ${isCartExpanded ? "p-4" : "p-0"}`}
+        >
+          {!isCartExpanded ? (
+            /* Collapsed state - Icon only */
+            <div
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50"
+              onClick={() => setIsCartExpanded(true)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <ShoppingCart className="w-6 h-6 text-green-600" />
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {tempCart.length}
+                  </span>
+                </div>
+                <span className="font-semibold text-sm">
+                  {t("tables.cart")} ({tempCart.length} {t("tables.items")})
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-blue-600">
+                  {Math.floor(tempCartTotal).toLocaleString("vi-VN")} ₫
+                </span>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
-            <div className="max-h-32 overflow-y-auto space-y-2">
-              {tempCart.map((item) => (
-                <div
-                  key={item.productId}
-                  className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium">{item.product.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {Math.floor(
-                        parseFloat(item.product.price),
-                      ).toLocaleString("vi-VN")}{" "}
-                      ₫
-                    </p>
-                  </div>
+          ) : (
+            /* Expanded state - Full cart */
+            <>
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-sm">
+                    {t("tables.cart")} ({tempCart.length} {t("tables.items")})
+                  </h3>
                   <div className="flex items-center gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => updateTempCartQuantity(item.productId, -1)}
-                      className="h-7 w-7 p-0"
+                      onClick={() => setIsCartExpanded(false)}
+                      className="h-8 w-8 p-0"
                     >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <span className="w-8 text-center font-medium">
-                      {item.quantity}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateTempCartQuantity(item.productId, 1)}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Plus className="w-3 h-3" />
+                      <Minus className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeFromTempCart(item.productId)}
-                      className="h-7 w-7 p-0 text-red-600"
+                      onClick={() => {
+                        setShowCancelDialog(true);
+                      }}
+                      className="text-red-600"
                     >
-                      <X className="w-3 h-3" />
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      {t("tables.clearCart")}
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-semibold">{t("tables.total")}:</span>
-            <span className="text-lg font-bold text-blue-600">
-              {Math.floor(tempCartTotal).toLocaleString("vi-VN")} ₫
-            </span>
-          </div>
-          <Button
-            className="w-full bg-green-600 hover:bg-green-700"
-            size="lg"
-            onClick={() => {
-              confirmOrderMutation.mutate();
-            }}
-            disabled={confirmOrderMutation.isPending}
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            {confirmOrderMutation.isPending
-              ? t("tables.processing")
-              : isOccupied
-                ? t("tables.addItemsToOrder")
-                : t("tables.createOrder")}
-          </Button>
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {tempCart.map((item) => (
+                    <div
+                      key={item.productId}
+                      className="bg-gray-50 p-2 rounded space-y-2"
+                    >
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex-1">
+                          <p className="font-medium">{item.product.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {Math.floor(
+                              parseFloat(item.product.price),
+                            ).toLocaleString("vi-VN")}{" "}
+                            ₫ x {item.quantity}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              updateTempCartQuantity(item.productId, -1)
+                            }
+                            className="h-7 w-7 p-0"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="w-8 text-center font-medium">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              updateTempCartQuantity(item.productId, 1)
+                            }
+                            className="h-7 w-7 p-0"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFromTempCart(item.productId)}
+                            className="h-7 w-7 p-0 text-red-600"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Item Discount */}
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-gray-600">
+                          {t("common.itemDiscount")}:
+                        </span>
+                        <Input
+                          type="text"
+                          value={
+                            item.discount && item.discount > 0
+                              ? Math.floor(item.discount).toLocaleString(
+                                  "vi-VN",
+                                )
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const value = Math.max(
+                              0,
+                              parseFloat(
+                                e.target.value.replace(/[^\d]/g, ""),
+                              ) || 0,
+                            );
+                            const basePrice = parseFloat(item.product.price);
+                            const quantity = item.quantity;
+                            const itemTotal = basePrice * quantity;
+
+                            let finalValue = value;
+
+                            // Validate discount doesn't exceed item total
+                            if (item.discountType === "percent") {
+                              // Limit percentage to 100%
+                              finalValue = Math.min(100, value);
+                            } else {
+                              // Limit VND discount to item total
+                              if (value > itemTotal) {
+                                finalValue = 0;
+                                toast({
+                                  title: "Lỗi giảm giá",
+                                  description:
+                                    "Giảm giá không được vượt quá giá sản phẩm",
+                                  variant: "destructive",
+                                });
+                              }
+                            }
+
+                            // Update only this item's discount
+                            const updatedCart = tempCart.map((cartItem) =>
+                              cartItem.productId === item.productId
+                                ? {
+                                    ...cartItem,
+                                    discount: finalValue,
+                                    discountType: item.discountType || "vnd",
+                                  }
+                                : cartItem,
+                            );
+                            setTempCart(updatedCart);
+
+                            // Mark discount source as item-level only if there's a value
+                            if (finalValue > 0) {
+                              setDiscountSource("item");
+                            } else if (
+                              updatedCart.every(
+                                (c) => !c.discount || c.discount === 0,
+                              )
+                            ) {
+                              // Only clear source if all items have no discount
+                              setDiscountSource(null);
+                            }
+                          }}
+                          placeholder="0"
+                          className="flex-1 h-8 text-right"
+                        />
+                        <div className="flex gap-1">
+                          <Button
+                            variant={
+                              item.discountType === "vnd"
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() => {
+                              const updatedCart = tempCart.map((cartItem) =>
+                                cartItem.productId === item.productId
+                                  ? {
+                                      ...cartItem,
+                                      discountType: "vnd" as
+                                        | "percent"
+                                        | "amount"
+                                        | "vnd",
+                                      discount: 0,
+                                    }
+                                  : cartItem,
+                              );
+                              setTempCart(updatedCart);
+                            }}
+                            className="h-8 w-10 p-0 text-xs"
+                          >
+                            ₫
+                          </Button>
+                          <Button
+                            variant={
+                              item.discountType === "percent"
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() => {
+                              const updatedCart = tempCart.map((cartItem) =>
+                                cartItem.productId === item.productId
+                                  ? {
+                                      ...cartItem,
+                                      discountType: "percent" as
+                                        | "percent"
+                                        | "amount"
+                                        | "vnd",
+                                      discount: 0,
+                                    }
+                                  : cartItem,
+                              );
+                              setTempCart(updatedCart);
+                            }}
+                            className="h-8 w-10 p-0 text-xs"
+                          >
+                            %
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Display allocated order discount only if discount source is order-level and item has no manual discount */}
+                      {discountSource === "order" &&
+                        orderDiscount > 0 &&
+                        orderDiscountType === "vnd" &&
+                        (!item.discount || item.discount === 0) && (
+                          <div className="text-xs text-orange-600 mt-1 flex items-center justify-between">
+                            <span>{t("common.allocatedOrderDiscount")}:</span>
+                            <span className="font-medium">
+                              -
+                              {(() => {
+                                const basePrice = parseFloat(
+                                  item.product.price,
+                                );
+                                const quantity = item.quantity;
+                                const itemTotal = basePrice * quantity;
+
+                                // Calculate allocated order discount for this item
+                                let allocatedDiscount = 0;
+                                const totalBeforeDiscount = tempCart.reduce(
+                                  (sum, i) => {
+                                    return (
+                                      sum +
+                                      parseFloat(i.product.price) * i.quantity
+                                    );
+                                  },
+                                  0,
+                                );
+
+                                if (totalBeforeDiscount > 0) {
+                                  allocatedDiscount = Math.round(
+                                    (orderDiscount * itemTotal) /
+                                      totalBeforeDiscount,
+                                  );
+                                }
+
+                                return Math.floor(
+                                  allocatedDiscount,
+                                ).toLocaleString("vi-VN");
+                              })()}{" "}
+                              ₫
+                            </span>
+                          </div>
+                        )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Order Discount */}
+              <div className="mb-3 pb-3 border-b">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-600">
+                    {t("common.orderDiscount")}:
+                  </span>
+                  <Input
+                    type="text"
+                    value={
+                      orderDiscount > 0
+                        ? Math.floor(orderDiscount).toLocaleString("vi-VN")
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const value = Math.max(
+                        0,
+                        parseFloat(e.target.value.replace(/[^\d]/g, "")) || 0,
+                      );
+                      setOrderDiscount(value);
+
+                      // Mark discount source as order-level
+                      if (value > 0) {
+                        setDiscountSource("order");
+
+                        // Redistribute order discount to items proportionally if in VND
+                        if (orderDiscountType === "vnd") {
+                          const totalBeforeDiscount = tempCart.reduce(
+                            (sum, item) => {
+                              return (
+                                sum +
+                                parseFloat(item.product.price) * item.quantity
+                              );
+                            },
+                            0,
+                          );
+
+                          let allocatedDiscountSum = 0;
+                          const updatedCart = tempCart.map((item, index) => {
+                            const isLastItem = index === tempCart.length - 1;
+                            const itemTotal =
+                              parseFloat(item.product.price) * item.quantity;
+
+                            let itemDiscount = 0;
+                            if (isLastItem) {
+                              // Last item gets remaining discount
+                              itemDiscount = Math.max(
+                                0,
+                                value - allocatedDiscountSum,
+                              );
+                            } else {
+                              // Proportional allocation
+                              itemDiscount =
+                                totalBeforeDiscount > 0
+                                  ? Math.round(
+                                      (value * itemTotal) / totalBeforeDiscount,
+                                    )
+                                  : 0;
+                              allocatedDiscountSum += itemDiscount;
+                            }
+
+                            return {
+                              ...item,
+                              discount: itemDiscount,
+                              discountType: "vnd" as
+                                | "percent"
+                                | "amount"
+                                | "vnd",
+                            };
+                          });
+
+                          setTempCart(updatedCart);
+                        }
+                      } else {
+                        // Clear discount source and all item discounts when order discount is cleared
+                        setDiscountSource(null);
+                        setTempCart(
+                          tempCart.map((item) => ({
+                            ...item,
+                            discount: 0,
+                            discountType: "vnd",
+                          })),
+                        );
+                      }
+                    }}
+                    placeholder="0"
+                    className="flex-1 h-9 text-right"
+                  />
+                  <Select
+                    value={orderDiscountType}
+                    onValueChange={(value: "percent" | "amount" | "vnd") => {
+                      setOrderDiscountType(value);
+                      // If switching to percent, recalculate item discounts based on percentage
+                      if (value === "percent") {
+                        const updatedCart = tempCart.map((item) => {
+                          const basePrice = parseFloat(item.product.price);
+                          const quantity = item.quantity;
+                          const currentItemDiscountVnd = item.discount || 0; // Assuming item.discount is VND
+
+                          // Calculate the percentage equivalent of the current VND discount
+                          const itemTotal = basePrice * quantity;
+                          const discountPercentage =
+                            itemTotal > 0
+                              ? (currentItemDiscountVnd / itemTotal) * 100
+                              : 0;
+
+                          return {
+                            ...item,
+                            discount: discountPercentage,
+                            discountType: "percent",
+                          };
+                        });
+                        setTempCart(updatedCart);
+                        // Also reset order discount to 0 or recalculate based on new type if needed
+                        setOrderDiscount(0); // Reset order discount when changing type to percent
+                      } else if (value === "vnd") {
+                        // If switching to VND, ensure item discounts are treated as VND
+                        const updatedCart = tempCart.map((item) => {
+                          // If discount was percent, convert it to VND based on current price
+                          if (
+                            item.discountType === "percent" &&
+                            item.discount !== undefined
+                          ) {
+                            const basePrice = parseFloat(item.product.price);
+                            const quantity = item.quantity;
+                            const discountVnd = Math.round(
+                              (basePrice * quantity * item.discount) / 100,
+                            );
+                            return {
+                              ...item,
+                              discount: discountVnd,
+                              discountType: "vnd",
+                            };
+                          }
+                          return { ...item, discountType: "vnd" };
+                        });
+                        setTempCart(updatedCart);
+                        // Recalculate order discount based on the sum of VND item discounts
+                        const totalItemDiscountVnd = updatedCart.reduce(
+                          (sum, cartItem) => sum + (cartItem.discount || 0),
+                          0,
+                        );
+                        setOrderDiscount(totalItemDiscountVnd);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-16 h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="vnd">₫</SelectItem>
+                      <SelectItem value="percent">%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1 mb-3 text-sm">
+                <div className="flex justify-between">
+                  <span>{t("common.subtotal")}:</span>
+                  <span>
+                    {Math.floor(tempCartSubtotalBeforeDiscount).toLocaleString(
+                      "vi-VN",
+                    )}{" "}
+                    ₫
+                  </span>
+                </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>{t("common.discount")}:</span>
+                    <span>
+                      -{Math.floor(totalDiscount).toLocaleString("vi-VN")} ₫
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>{t("common.tax")}:</span>
+                  <span>
+                    {Math.floor(tempCartTax).toLocaleString("vi-VN")} ₫
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-base pt-2 border-t">
+                  <span>{t("tables.total")}:</span>
+                  <span className="text-blue-600">
+                    {Math.floor(tempCartTotal).toLocaleString("vi-VN")} ₫
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700"
+                size="lg"
+                onClick={() => {
+                  confirmOrderMutation.mutate();
+                }}
+                disabled={confirmOrderMutation.isPending}
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                {confirmOrderMutation.isPending
+                  ? t("tables.processing")
+                  : isOccupied
+                    ? t("tables.addItemsToOrder")
+                    : t("tables.createOrder")}
+              </Button>
+            </>
+          )}
         </div>
       )}
 
@@ -1177,12 +1770,24 @@ export function MobileTableView({
                       SKU: {product.sku}
                     </p>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-blue-600 text-base">
-                        {Math.floor(parseFloat(product.price)).toLocaleString(
-                          "vi-VN",
-                        )}{" "}
-                        ₫
-                      </span>
+                      <div>
+                        <span className="font-bold text-blue-600 text-base">
+                          {Math.floor(parseFloat(product.price)).toLocaleString(
+                            "vi-VN",
+                          )}{" "}
+                          ₫
+                        </span>
+                        {tempCartItem &&
+                          tempCartItem.discount &&
+                          tempCartItem.discount > 0 && (
+                            <div className="text-xs text-red-600 mt-1">
+                              {t("common.itemDiscount")}: -
+                              {tempCartItem.discountType === "percent"
+                                ? `${tempCartItem.discount.toFixed(2)}%`
+                                : `${Math.floor(tempCartItem.discount).toLocaleString("vi-VN")} ₫`}
+                            </div>
+                          )}
+                      </div>
                       {product.stock <= 5 &&
                         product.trackInventory !== false && (
                           <Badge variant="destructive" className="text-xs">
@@ -1197,7 +1802,11 @@ export function MobileTableView({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateTempCartQuantity(product.id, -1)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            updateTempCartQuantity(product.id, -1);
+                          }}
                           className="h-8 px-2"
                         >
                           <Minus className="w-4 h-4" />
@@ -1208,7 +1817,11 @@ export function MobileTableView({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateTempCartQuantity(product.id, 1)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            updateTempCartQuantity(product.id, 1);
+                          }}
                           className="h-8 px-2"
                           disabled={
                             product.trackInventory !== false &&
@@ -1220,7 +1833,11 @@ export function MobileTableView({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeFromTempCart(product.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeFromTempCart(product.id);
+                          }}
                           className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1228,7 +1845,11 @@ export function MobileTableView({
                       </div>
                     ) : (
                       <Button
-                        onClick={() => addToTempCart(product)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          addToTempCart(product);
+                        }}
                         className="w-full bg-green-500 hover:bg-green-600 text-white"
                         size="sm"
                         disabled={
@@ -1246,6 +1867,439 @@ export function MobileTableView({
           </div>
         )}
       </div>
+
+      {/* Cancel Order Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận hủy đơn hàng</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vui lòng nhập lý do hủy đơn hàng
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Nhập lý do hủy đơn..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setCancelReason("");
+              }}
+            >
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!cancelReason.trim()) {
+                  toast({
+                    title: "Lỗi",
+                    description: "Vui lòng nhập lý do hủy đơn",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                // Clear cart and reset
+                setTempCart([]);
+                setOrderDiscount(0);
+                setOrderDiscountType("vnd");
+                setDiscountSource(null);
+                setShowCancelDialog(false);
+                setCancelReason("");
+
+                toast({
+                  title: "Đã hủy",
+                  description: `Lý do: ${cancelReason}`,
+                });
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Xác nhận hủy
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Item Dialog */}
+      <AlertDialog
+        open={showDeleteItemDialog}
+        onOpenChange={setShowDeleteItemDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+            <AlertDialogDescription>
+              Món này đã được gửi vào bếp. Vui lòng nhập ghi chú để xác nhận
+              xóa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="mb-3">
+              <p className="text-sm font-medium">
+                Món: {itemToDelete?.productName}
+              </p>
+              <p className="text-sm text-gray-500">
+                Số lượng: {itemToDelete?.quantity}
+              </p>
+            </div>
+            <Textarea
+              placeholder="Nhập lý do xóa món (bắt buộc)..."
+              value={deleteItemNote}
+              onChange={(e) => setDeleteItemNote(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteItemNote("");
+                setItemToDelete(null);
+              }}
+            >
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!deleteItemNote.trim()) {
+                  toast({
+                    title: "Lỗi",
+                    description: "Vui lòng nhập ghi chú xóa món",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                if (!itemToDelete) return;
+
+                try {
+                  await apiRequest(
+                    "DELETE",
+                    `https://order-mobile-be.onrender.com/api/order-items/${itemToDelete.id}`,
+                  );
+                  await refetchOrderItems();
+
+                  // Recalculate order totals if there's an active order
+                  if (activeOrder) {
+                    await apiRequest(
+                      "POST",
+                      `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+                      {},
+                    );
+                  }
+
+                  // Invalidate orders cache
+                  await queryClient.invalidateQueries({
+                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                  });
+
+                  setShowDeleteItemDialog(false);
+                  setDeleteItemNote("");
+                  setItemToDelete(null);
+
+                  toast({
+                    title: "Đã xóa",
+                    description: `Đã xóa "${itemToDelete.productName}" - Ghi chú: ${deleteItemNote}`,
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Lỗi",
+                    description: "Không thể xóa món",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Xác nhận xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog with Notes */}
+      <AlertDialog
+        open={showDeleteConfirmDialog}
+        onOpenChange={(open) => {
+          console.log("🔧 AlertDialog onOpenChange called with:", open);
+          setShowDeleteConfirmDialog(open);
+          if (!open) {
+            setDeleteNote("");
+            setItemToDeleteWithNote(null);
+          }
+        }}
+      >
+        <AlertDialogPortal>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+              <AlertDialogDescription>
+                Vui lòng nhập ghi chú để xác nhận xóa món khỏi đơn hàng
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <div className="mb-3">
+                <p className="text-sm font-medium">
+                  Món: {itemToDeleteWithNote?.productName}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Số lượng: {itemToDeleteWithNote?.quantity}
+                </p>
+                {itemToDeleteWithNote?.status && (
+                  <p className="text-sm text-orange-600 mt-1">
+                    Trạng thái:{" "}
+                    {itemToDeleteWithNote.status === "pending"
+                      ? "Chờ chế biến"
+                      : itemToDeleteWithNote.status === "progress"
+                        ? "Đang chế biến"
+                        : itemToDeleteWithNote.status === "completed"
+                          ? "Hoàn thành"
+                          : itemToDeleteWithNote.status}
+                  </p>
+                )}
+              </div>
+              <Textarea
+                placeholder="Nhập ghi chú (không bắt buộc)..."
+                value={deleteNote}
+                onChange={(e) => setDeleteNote(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setDeleteNote("");
+                  setItemToDeleteWithNote(null);
+                }}
+              >
+                Hủy
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  if (!itemToDeleteWithNote) return;
+
+                  try {
+                    // Update item with notes before deleting if there's a note
+                    if (deleteNote.trim()) {
+                      console.log(`📝 Updating order item ${itemToDeleteWithNote.id} with note:`, deleteNote.trim());
+                      await apiRequest(
+                        "PATCH",
+                        `https://order-mobile-be.onrender.com/api/order-items/${itemToDeleteWithNote.id}`,
+                        {
+                          notes: deleteNote.trim(),
+                        },
+                      );
+
+                      // Wait a bit to ensure the update is processed
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+
+                    // Delete the item
+                    console.log(`🗑️ Deleting order item ${itemToDeleteWithNote.id}`);
+                    await apiRequest(
+                      "DELETE",
+                      `https://order-mobile-be.onrender.com/api/order-items/${itemToDeleteWithNote.id}`,
+                    );
+                    await refetchOrderItems();
+
+                    // Recalculate order totals if there's an active order
+                    if (activeOrder) {
+                      await apiRequest(
+                        "POST",
+                        `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+                        {},
+                      );
+                    }
+
+                    // Invalidate orders cache
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                    });
+
+                    setShowDeleteConfirmDialog(false);
+                    setDeleteNote("");
+                    setItemToDeleteWithNote(null);
+
+                    toast({
+                      title: "Đã xóa",
+                      description: deleteNote.trim()
+                        ? `Đã xóa "${itemToDeleteWithNote.productName}" - Ghi chú: ${deleteNote}`
+                        : `Đã xóa "${itemToDeleteWithNote.productName}"`,
+                    });
+                  } catch (error) {
+                    console.error("❌ Error deleting item with note:", error);
+                    toast({
+                      title: "Lỗi",
+                      description: "Không thể xóa món",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Xác nhận xóa
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogPortal>
+      </AlertDialog>
+
+      {/* Decrease Quantity with Note Dialog */}
+      <AlertDialog
+        open={showDecreaseNoteDialog}
+        onOpenChange={setShowDecreaseNoteDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Giảm số lượng món</AlertDialogTitle>
+            <AlertDialogDescription>
+              Nhập ghi chú để tách sản phẩm có ghi chú
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="mb-3">
+              <p className="text-sm font-medium">
+                Món: {itemToDecreaseWithNote?.productName}
+              </p>
+              <p className="text-sm text-gray-500">
+                Số lượng hiện tại: {itemToDecreaseWithNote?.quantity}
+              </p>
+            </div>
+            <div className="mb-4">
+              <label className="text-sm font-medium mb-2 block">
+                Số lượng muốn tách:
+              </label>
+              <Input
+                type="number"
+                min="1"
+                max={itemToDecreaseWithNote ? parseFloat(itemToDecreaseWithNote.quantity) : 1}
+                value={decreaseQuantity}
+                onChange={(e) => setDecreaseQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full"
+              />
+            </div>
+            <Textarea
+              placeholder="Nhập ghi chú (bắt buộc)..."
+              value={decreaseNote}
+              onChange={(e) => setDecreaseNote(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDecreaseNote("");
+                setItemToDecreaseWithNote(null);
+                setDecreaseQuantity(1);
+              }}
+            >
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!itemToDecreaseWithNote) return;
+
+                if (!decreaseNote.trim()) {
+                  toast({
+                    title: "Lỗi",
+                    description: "Vui lòng nhập ghi chú",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                const currentQuantity = parseFloat(itemToDecreaseWithNote.quantity);
+                const quantityToDecrease = Math.min(decreaseQuantity, currentQuantity);
+
+                if (quantityToDecrease <= 0 || quantityToDecrease > currentQuantity) {
+                  toast({
+                    title: "Lỗi",
+                    description: "Số lượng không hợp lệ",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                try {
+                  const unitPrice = parseFloat(itemToDecreaseWithNote.unitPrice);
+                  const newQuantity = currentQuantity - quantityToDecrease;
+
+                  // Update current item quantity
+                  if (newQuantity > 0) {
+                    const newTotal = (unitPrice * newQuantity).toFixed(2);
+                    await apiRequest(
+                      "PUT",
+                      `https://order-mobile-be.onrender.com/api/order-items/${itemToDecreaseWithNote.id}`,
+                      {
+                        quantity: newQuantity,
+                        total: newTotal,
+                      },
+                    );
+                  } else {
+                    // Delete item if quantity becomes 0
+                    await apiRequest(
+                      "DELETE",
+                      `https://order-mobile-be.onrender.com/api/order-items/${itemToDecreaseWithNote.id}`,
+                    );
+                  }
+
+                  // Create new item with note
+                  const newItemTotal = (unitPrice * quantityToDecrease).toFixed(2);
+                  await apiRequest("POST", `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/items`, {
+                    items: [
+                      {
+                        productId: itemToDecreaseWithNote.productId,
+                        quantity: quantityToDecrease,
+                        unitPrice: itemToDecreaseWithNote.unitPrice,
+                        discount: "0.00",
+                        total: newItemTotal,
+                        notes: decreaseNote.trim(),
+                      },
+                    ],
+                  });
+
+                  await refetchOrderItems();
+
+                  // Recalculate order totals
+                  await apiRequest(
+                    "POST",
+                    `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+                    {},
+                  );
+
+                  // Invalidate orders cache
+                  await queryClient.invalidateQueries({
+                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                  });
+
+                  setShowDecreaseNoteDialog(false);
+                  setDecreaseNote("");
+                  setItemToDecreaseWithNote(null);
+                  setDecreaseQuantity(1);
+
+                  toast({
+                    title: "Thành công",
+                    description: `Đã tách ${quantityToDecrease} "${itemToDecreaseWithNote.productName}" với ghi chú: ${decreaseNote}`,
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Lỗi",
+                    description: "Không thể giảm số lượng",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Xác nhận
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

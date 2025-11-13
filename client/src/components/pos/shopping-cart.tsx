@@ -6,6 +6,8 @@ import {
   Trash2,
   CreditCard,
   Banknote,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +74,9 @@ export function ShoppingCart({
 
   // State to manage the visibility of the print dialog
   const [showPrintDialog, setShowPrintDialog] = useState(false);
+
+  // State for cart collapse/expand
+  const [isCartCollapsed, setIsCartCollapsed] = useState(false);
 
   // Fetch store settings to check price_include_tax setting
   const { data: storeSettings } = useQuery({
@@ -1224,16 +1229,33 @@ export function ShoppingCart({
           <h2 className="text-xl pos-text-primary font-semibold">
             {t("pos.purchaseHistory")}
           </h2>
-          {onCreateNewOrder && (
-            <Button
-              onClick={onCreateNewOrder}
-              size="sm"
-              variant="outline"
-              className="text-xs px-2 py-1"
-            >
-              + {t("pos.newOrder")}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {cart.length > 0 && (
+              <Button
+                onClick={() => setIsCartCollapsed(!isCartCollapsed)}
+                size="sm"
+                variant="ghost"
+                className="text-xs px-2 py-1"
+                title={isCartCollapsed ? "Mở rộng" : "Thu gọn"}
+              >
+                {isCartCollapsed ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronUp className="w-4 h-4" />
+                )}
+              </Button>
+            )}
+            {onCreateNewOrder && (
+              <Button
+                onClick={onCreateNewOrder}
+                size="sm"
+                variant="outline"
+                className="text-xs px-2 py-1"
+              >
+                + {t("pos.newOrder")}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Order Tabs */}
@@ -1284,7 +1306,7 @@ export function ShoppingCart({
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className={`flex-1 overflow-y-auto p-4 space-y-3 transition-all duration-300 ${isCartCollapsed ? 'max-h-0 p-0 opacity-0' : 'opacity-100'}`}>
         {cart.length === 0 ? (
           <div className="text-center py-12">
             <CartIcon className="mx-auto text-gray-400 mb-4" size={48} />
@@ -1294,7 +1316,7 @@ export function ShoppingCart({
             <p className="pos-text-tertiary">{t("pos.addProductsToStart")}</p>
           </div>
         ) : (
-          cart.map((item) => (
+          !isCartCollapsed && cart.map((item) => (
             <div key={item.id} className="bg-gray-50 rounded-lg p-2">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0 pr-2">
