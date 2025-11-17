@@ -1334,8 +1334,8 @@ export function MobileTableView({
                                   });
 
                                   toast({
-                                    title: "Đã xóa món",
-                                    description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
+                                    title: t("tables.itemDeleted"),
+                                    description: `${t("common.delete")} "${item.productName}"`,
                                   });
                                 } catch (error) {
                                   console.error(
@@ -1343,8 +1343,8 @@ export function MobileTableView({
                                     error,
                                   );
                                   toast({
-                                    title: "Lỗi",
-                                    description: "Không thể xóa món",
+                                    title: t("common.error"),
+                                    description: t("tables.cannotDeleteItem"),
                                     variant: "destructive",
                                   });
                                 }
@@ -1364,7 +1364,7 @@ export function MobileTableView({
                           className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="w-4 h-4 mr-1" />
-                          Xóa món
+                          {t("tables.deleteItem")}
                         </Button>
                       </div>
 
@@ -1637,10 +1637,10 @@ export function MobileTableView({
             <div className="py-4">
               <div className="mb-3">
                 <p className="text-sm font-medium">
-                  Món: {itemToDecreaseWithNote?.productName}
+                  {t("tables.itemName")}: {itemToDecreaseWithNote?.productName}
                 </p>
                 <p className="text-sm text-gray-500">
-                  Số lượng hiện tại:{" "}
+                  {t("tables.currentQuantity")}:{" "}
                   {parseFloat(itemToDecreaseWithNote?.quantity || "0")}
                 </p>
               </div>
@@ -2185,7 +2185,16 @@ export function MobileTableView({
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setShowCancelDialog(true);
+                        // Clear cart directly without dialog
+                        setTempCart([]);
+                        setOrderDiscount(0);
+                        setOrderDiscountType("vnd");
+                        setDiscountSource(null);
+                        
+                        toast({
+                          title: t("tables.orderCancelled"),
+                          description: t("tables.clearCart"),
+                        });
                       }}
                       className="text-red-600"
                     >
@@ -3032,68 +3041,71 @@ export function MobileTableView({
                   const unitPrice = parseFloat(
                     itemToDecreaseWithNote.unitPrice,
                   );
+                  const discount = parseFloat(itemToDecreaseWithNote.discount || "0");
                   const newQuantity = currentQuantity - quantityToDecrease;
 
-                  if (decreaseNote.trim()) {
-                    // Case 1: Có ghi chú - tách món riêng
-                    // Update current item quantity
-                    if (newQuantity > 0) {
-                      const newTotal = (unitPrice * newQuantity).toFixed(2);
-                      await apiRequest(
-                        "PUT",
-                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
-                        {
-                          quantity: newQuantity,
-                          total: newTotal,
-                        },
-                      );
-                    } else {
-                      // Delete item if quantity becomes 0
-                      await apiRequest(
-                        "DELETE",
-                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
-                      );
-                    }
+                  // Update item quantity and add note (do NOT split)
+                  if (newQuantity > 0) {
+                    const itemSubtotal = unitPrice * newQuantity;
+                    const newTotal = Math.max(0, itemSubtotal - discount).toFixed(2);
+                    
+                    // Combine existing notes with new note
+                    const existingNotes = itemToDecreaseWithNote.notes || "";
+                    const combinedNotes = decreaseNote.trim() 
+                      ? existingNotes 
+                        ? `${existingNotes}\n- Giảm ${quantityToDecrease}: ${decreaseNote}`
+                        : `Giảm ${quantityToDecrease}: ${decreaseNote}`
+                      : existingNotes;
 
-                    // Create new item with note
-                    const newItemTotal = (
-                      unitPrice * quantityToDecrease
-                    ).toFixed(2);
                     await apiRequest(
-                      "POST",
-                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/items`,
+                      "PUT",
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                       {
-                        items: [
-                          {
-                            productId: itemToDecreaseWithNote.productId,
-                            quantity: quantityToDecrease,
-                            unitPrice: itemToDecreaseWithNote.unitPrice,
-                            discount: "0.00", // Ensure discount is 0 for new item
-                            total: newItemTotal,
-                            notes: decreaseNote.trim(),
-                          },
-                        ],
+                        quantity: newQuantity,
+                        total: newTotal,
+                        notes: combinedNotes,
                       },
                     );
+
+                    // Save order change history
+                    await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
+                      orderId: activeOrder.id,
+                      orderNumber: activeOrder.orderNumber,
+                      ipAddress: window.location.hostname || "unknown",
+                      userName: "Mobile User",
+                      action: "reduce_quantity",
+                      detailedDescription: {
+                        productName: itemToDecreaseWithNote.productName,
+                        oldQuantity: currentQuantity,
+                        newQuantity: newQuantity,
+                        unitPrice: itemToDecreaseWithNote.unitPrice,
+                        note: decreaseNote.trim() || "Giảm số lượng sản phẩm",
+                      },
+                      storeCode: activeOrder.storeCode || null,
+                    });
                   } else {
-                    // Case 2: Không có ghi chú - chỉ giảm số lượng
-                    if (newQuantity > 0) {
-                      const newTotal = (unitPrice * newQuantity).toFixed(2);
-                      await apiRequest(
-                        "PUT",
-                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
-                        {
-                          quantity: newQuantity,
-                          total: newTotal,
-                        },
-                      );
-                    } else {
-                      // Delete item if quantity becomes 0
-                      await apiRequest(
-                        "DELETE",
-                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
-                      );
-                    }
+                    // Delete item if quantity becomes 0
+                    await apiRequest(
+                      "DELETE",
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                    );
+
+                    // Save order change history for deletion
+                    await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
+                      orderId: activeOrder.id,
+                      orderNumber: activeOrder.orderNumber,
+                      ipAddress: window.location.hostname || "unknown",
+                      userName: "Mobile User",
+                      action: "delete_item",
+                      detailedDescription: {
+                        productName: itemToDecreaseWithNote.productName,
+                        oldQuantity: currentQuantity,
+                        newQuantity: 0,
+                        unitPrice: itemToDecreaseWithNote.unitPrice,
+                        note: decreaseNote.trim() || "Xóa món do số lượng về 0",
+                      },
+                      storeCode: activeOrder.storeCode || null,
+                    });
                   }
 
                   // Recalculate order totals
@@ -3108,6 +3120,11 @@ export function MobileTableView({
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
                     queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                  });
+
+                  toast({
+                    title: "Đã cập nhật",
+                    description: `Đã giảm số lượng "${itemToDecreaseWithNote.productName}" xuống ${newQuantity}`,
                   });
 
                   setShowDecreaseNoteDialog(false);
