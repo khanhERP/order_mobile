@@ -82,7 +82,7 @@ export function ShoppingCart({
   const { data: storeSettings } = useQuery({
     queryKey: ["store-settings"],
     queryFn: async () => {
-      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings");
+      const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings");
       if (!response.ok) {
         throw new Error("Failed to fetch store settings");
       }
@@ -362,7 +362,7 @@ export function ShoppingCart({
   const { data: products } = useQuery<any[]>({
     queryKey: ["products"],
     queryFn: async () => {
-      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products");
+      const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -390,7 +390,7 @@ export function ShoppingCart({
   useEffect(() => {
     console.log("📡 Shopping Cart: Initializing single WebSocket connection");
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+    const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
 
     let reconnectTimer: NodeJS.Timeout | null = null;
     let shouldReconnect = true;
@@ -701,7 +701,7 @@ export function ShoppingCart({
       // Send WebSocket signal for refresh
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+        const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -2014,7 +2014,7 @@ export function ShoppingCart({
                 // Fallback WebSocket connection if main one is not available
                 const protocol =
                   window.location.protocol === "https:" ? "wss:" : "ws:";
-                const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+                const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
                 const fallbackWs = new WebSocket(wsUrl);
 
                 fallbackWs.onopen = () => {

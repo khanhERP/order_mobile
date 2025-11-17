@@ -89,7 +89,7 @@ export function CustomerPointsModal({
   const { data: pointsData, isLoading: pointsLoading } = useQuery({
     queryKey: ['customer-points', customerId],
     queryFn: async () => {
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/${customerId}/points`);
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers/${customerId}/points`);
       if (!response.ok) throw new Error('Failed to fetch customer points');
       return response.json();
     },
@@ -100,7 +100,7 @@ export function CustomerPointsModal({
   const { data: pointHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['customer-point-history', customerId],
     queryFn: async () => {
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/${customerId}/point-history`);
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers/${customerId}/point-history`);
       if (!response.ok) throw new Error('Failed to fetch point history');
       return response.json();
     },
@@ -110,7 +110,7 @@ export function CustomerPointsModal({
   // Update points mutation
   const updatePointsMutation = useMutation({
     mutationFn: async (data: PointUpdateForm) => {
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/${customerId}/points`, {
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers/${customerId}/points`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ export function CustomerPointsModal({
         queryKey: ['customer-point-history', customerId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'],
+        queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers'],
       });
       toast({
         title: t("common.success"),

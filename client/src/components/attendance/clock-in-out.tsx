@@ -47,22 +47,22 @@ export function ClockInOut() {
   const { t } = useTranslation();
 
   const { data: employees } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees"],
   });
 
   const { data: todayAttendance, refetch: refetchTodayAttendance } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance/today", selectedEmployeeId],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance/today", selectedEmployeeId],
     enabled: !!selectedEmployeeId,
   });
 
   const clockInMutation = useMutation({
     mutationFn: () =>
-      apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance/clock-in", {
+      apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance/clock-in", {
         employeeId: selectedEmployeeId,
         notes,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance"] });
       refetchTodayAttendance();
       setNotes("");
       toast({
@@ -83,11 +83,11 @@ export function ClockInOut() {
     mutationFn: () =>
       apiRequest(
         "POST",
-        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance/clock-out/${(todayAttendance as AttendanceRecord)?.id}`,
+        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance/clock-out/${(todayAttendance as AttendanceRecord)?.id}`,
         {},
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance"] });
       refetchTodayAttendance();
       toast({
         title: t("common.success"),
@@ -107,11 +107,11 @@ export function ClockInOut() {
     mutationFn: () =>
       apiRequest(
         "POST",
-        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance/break-start/${(todayAttendance as AttendanceRecord)?.id}`,
+        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance/break-start/${(todayAttendance as AttendanceRecord)?.id}`,
         {},
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance"] });
       refetchTodayAttendance();
       toast({
         title: t("common.success"),
@@ -131,11 +131,11 @@ export function ClockInOut() {
     mutationFn: () =>
       apiRequest(
         "POST",
-        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance/break-end/${(todayAttendance as AttendanceRecord)?.id}`,
+        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance/break-end/${(todayAttendance as AttendanceRecord)?.id}`,
         {},
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance"] });
       refetchTodayAttendance();
       toast({
         title: t("common.success"),

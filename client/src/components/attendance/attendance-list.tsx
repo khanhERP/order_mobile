@@ -30,15 +30,15 @@ export function AttendanceList({
 }: AttendanceListProps) {
   const { t } = useTranslation();
   const { data: employees } = useQuery({
-    queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees'],
+    queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees'],
   });
 
   const { data: attendanceRecords, isLoading } = useQuery({
     queryKey: useRange 
-      ? ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance', 'range', dateRange?.startDate, dateRange?.endDate]
-      : ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance', selectedDate],
+      ? ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance', 'range', dateRange?.startDate, dateRange?.endDate]
+      : ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance', selectedDate],
     queryFn: async () => {
-      let url = 'https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance';
+      let url = 'https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance';
       if (useRange && dateRange?.startDate && dateRange?.endDate) {
         url += `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
       } else {

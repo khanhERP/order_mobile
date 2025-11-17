@@ -122,9 +122,9 @@ export function MobileTableView({
 
   // Fetch table data
   const { data: table } = useQuery<Table>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables", tableId],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables", tableId],
     queryFn: async () => {
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables/${tableId}`);
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables/${tableId}`);
       if (!response.ok) throw new Error("Failed to fetch table");
       return response.json();
     },
@@ -132,9 +132,9 @@ export function MobileTableView({
 
   // Fetch all orders
   const { data: orders } = useQuery<Order[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
     queryFn: async () => {
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders?${tableId}`);
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders?${tableId}`);
       if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
       return data.filter(
@@ -153,12 +153,12 @@ export function MobileTableView({
   const { data: orderItems, refetch: refetchOrderItems } = useQuery<
     OrderItem[]
   >({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder?.id],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items", activeOrder?.id],
     enabled: !!activeOrder?.id,
     queryFn: async () => {
       if (!activeOrder?.id) return [];
       console.log("📦 Fetching order items for order:", activeOrder.id);
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${activeOrder.id}`);
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${activeOrder.id}`);
       if (!response.ok) {
         console.error("❌ Failed to fetch order items:", response.status);
         throw new Error("Failed to fetch order items");
@@ -174,9 +174,9 @@ export function MobileTableView({
 
   // Fetch products for the product list
   const { data: products } = useQuery<Product[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/products"],
     queryFn: async () => {
-      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products");
+      const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/products");
       if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
       return data.filter(
@@ -187,7 +187,7 @@ export function MobileTableView({
 
   // Fetch categories
   const { data: categories } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/categories"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/categories"],
   });
 
   // Determine if table is occupied - prioritize table.status but also check active order
@@ -371,7 +371,7 @@ export function MobileTableView({
         });
 
         console.log("📝 Creating new order", { orderData, items });
-        return apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", { order: orderData, items });
+        return apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders", { order: orderData, items });
       } else {
         console.log("➕ Adding items to existing order", activeOrder.id);
 
@@ -606,7 +606,7 @@ export function MobileTableView({
           // Add new items to order (existing items will be kept)
           const addItemsResponse = await apiRequest(
             "POST",
-            `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items`,
+            `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/items`,
             { items: newItems },
           );
 
@@ -626,7 +626,7 @@ export function MobileTableView({
             );
             const recalcResponse = await apiRequest(
               "POST",
-              `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+              `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
               {},
             );
             const recalcResult = await recalcResponse.json();
@@ -641,13 +641,13 @@ export function MobileTableView({
         } else {
           const updatedItemsResponse = await apiRequest(
             "POST",
-            `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items/update`,
+            `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/items/update`,
             { items: itemsToUpdate },
           );
 
           const recalcResponse = await apiRequest(
             "POST",
-            `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+            `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
             {},
           );
           const recalcResult = await recalcResponse.json();
@@ -664,21 +664,21 @@ export function MobileTableView({
       console.log("✅ Order created/updated successfully, refreshing data");
 
       // Clear all caches first
-      queryClient.removeQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] });
-      queryClient.removeQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items"] });
-      queryClient.removeQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] });
+      queryClient.removeQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"] });
+      queryClient.removeQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items"] });
+      queryClient.removeQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables"] });
 
       // Force immediate refresh
       await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables", tableId] }),
-        queryClient.refetchQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] }),
+        queryClient.refetchQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"] }),
+        queryClient.refetchQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables", tableId] }),
+        queryClient.refetchQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables"] }),
       ]);
 
       // Refetch order items if there's an active order
       if (activeOrder?.id) {
         await queryClient.refetchQueries({
-          queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder.id],
+          queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items", activeOrder.id],
         });
       }
 
@@ -705,7 +705,7 @@ export function MobileTableView({
 
   // Calculate subtotal (before tax and discount)
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings"],
   });
   const priceIncludesTax = storeSettings?.priceIncludesTax ?? true;
 
@@ -791,10 +791,10 @@ export function MobileTableView({
 
   // Fetch all unpaid orders for this table
   const { data: pendingOrders } = useQuery<Order[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", "table", tableId],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders", "table", tableId],
     queryFn: async () => {
       const allOrders = await queryClient.fetchQuery({
-        queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+        queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
       });
       const filtered = (allOrders as Order[]).filter(
         (o: Order) =>
@@ -854,7 +854,7 @@ export function MobileTableView({
                 onClick={async () => {
                   // Set this order as the active one by invalidating and switching view
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                   });
                   setViewMode("order");
                 }}
@@ -1097,116 +1097,136 @@ export function MobileTableView({
                               );
 
                               const currentQuantity = parseFloat(item.quantity);
-                              const newQuantity = currentQuantity - 1;
 
-                              if (newQuantity <= 0) {
-                                // Delete item if quantity becomes 0
-                                try {
-                                  await apiRequest(
-                                    "DELETE",
-                                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
-                                  );
-                                  
-                                  // Save order change history
-                                  if (activeOrder) {
-                                    const userName = "Mobile User";
-                                    const ipAddress = "mobile";
-                                    const detailedDescription = `Xóa món: ${item.productName} (SL: ${currentQuantity}, Giá: ${Math.floor(parseFloat(item.unitPrice)).toLocaleString("vi-VN")} ₫)`;
-
-                                    await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
-                                      orderId: activeOrder.id,
-                                      orderNumber: activeOrder.orderNumber,
-                                      action: "delete_item",
-                                      detailedDescription,
-                                      userName,
-                                      ipAddress,
-                                    });
-                                  }
-
-                                  await refetchOrderItems();
-
-                                  // Recalculate order totals
-                                  if (activeOrder) {
-                                    await apiRequest(
-                                      "POST",
-                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                                      {},
-                                    );
-                                  }
-
-                                  await queryClient.invalidateQueries({
-                                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
-                                  });
-
-                                  toast({
-                                    title: "Đã xóa món",
-                                    description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
-                                  });
-                                } catch (error) {
-                                  toast({
-                                    title: "Lỗi",
-                                    description: "Không thể xóa món",
-                                    variant: "destructive",
-                                  });
-                                }
+                              // Check if item has been sent to kitchen
+                              if (item.status && item.status !== "") {
+                                // Item sent to kitchen - show note dialog
+                                console.log(
+                                  "⚠️ Item sent to kitchen, showing note dialog",
+                                );
+                                setItemToDecreaseWithNote(item);
+                                setDecreaseQuantity(1);
+                                setDecreaseNote("");
+                                setShowDecreaseNoteDialog(true);
                               } else {
-                                // Decrease quantity by 1
-                                try {
-                                  const unitPrice = parseFloat(item.unitPrice);
-                                  const discount = parseFloat(item.discount || "0");
-                                  const itemSubtotal = unitPrice * newQuantity;
-                                  const newTotal = (itemSubtotal - discount).toFixed(2);
+                                // Item not sent to kitchen yet - decrease directly
+                                const newQuantity = currentQuantity - 1;
 
-                                  await apiRequest(
-                                    "PUT",
-                                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
-                                    {
-                                      quantity: newQuantity,
-                                      total: newTotal,
-                                    },
-                                  );
+                                if (newQuantity <= 0) {
+                                  // Delete item if quantity becomes 0
+                                  try {
+                                    await apiRequest(
+                                      "DELETE",
+                                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${item.id}`,
+                                    );
 
-                                  // Save order change history
-                                  if (activeOrder) {
-                                    const userName = "Mobile User";
-                                    const ipAddress = "mobile";
-                                    const detailedDescription = `Giảm số lượng: ${item.productName} (SL: ${currentQuantity} → ${newQuantity}, Giảm: 1, Giá: ${Math.floor(parseFloat(item.unitPrice)).toLocaleString("vi-VN")} ₫)`;
+                                    // Save order change history
+                                    if (activeOrder) {
+                                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
+                                        orderId: activeOrder.id,
+                                        orderNumber: activeOrder.orderNumber,
+                                        ipAddress: window.location.hostname || "unknown",
+                                        userName: "Mobile User",
+                                        action: "delete_item",
+                                        detailedDescription: {
+                                          productName: item.productName,
+                                          oldQuantity: currentQuantity,
+                                          newQuantity: 0,
+                                          unitPrice: item.unitPrice,
+                                          note: "Xóa món do số lượng về 0",
+                                        },
+                                        storeCode: activeOrder.storeCode || null,
+                                      });
+                                    }
 
-                                    await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
-                                      orderId: activeOrder.id,
-                                      orderNumber: activeOrder.orderNumber,
-                                      action: "decrease_quantity",
-                                      detailedDescription,
-                                      userName,
-                                      ipAddress,
+                                    await refetchOrderItems();
+
+                                    // Recalculate order totals
+                                    if (activeOrder) {
+                                      await apiRequest(
+                                        "POST",
+                                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                        {},
+                                      );
+                                    }
+
+                                    await queryClient.invalidateQueries({
+                                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                                    });
+
+                                    toast({
+                                      title: "Đã xóa món",
+                                      description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Lỗi",
+                                      description: "Không thể xóa món",
+                                      variant: "destructive",
                                     });
                                   }
+                                } else {
+                                  // Decrease quantity by 1
+                                  try {
+                                    const unitPrice = parseFloat(item.unitPrice);
+                                    const discount = parseFloat(item.discount || "0");
+                                    const itemSubtotal = unitPrice * newQuantity;
+                                    const newTotal = (itemSubtotal - discount).toFixed(2);
 
-                                  await refetchOrderItems();
-
-                                  // Recalculate order totals
-                                  if (activeOrder) {
                                     await apiRequest(
-                                      "POST",
-                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                                      {},
+                                      "PUT",
+                                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${item.id}`,
+                                      {
+                                        quantity: newQuantity,
+                                        total: newTotal,
+                                      },
                                     );
+
+                                    // Save order change history
+                                    if (activeOrder) {
+                                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
+                                        orderId: activeOrder.id,
+                                        orderNumber: activeOrder.orderNumber,
+                                        ipAddress: window.location.hostname || "unknown",
+                                        userName: "Mobile User",
+                                        action: "reduce_quantity",
+                                        detailedDescription: {
+                                          productName: item.productName,
+                                          oldQuantity: currentQuantity,
+                                          newQuantity: newQuantity,
+                                          unitPrice: item.unitPrice,
+                                          note: "Giảm số lượng qua nút trừ",
+                                        },
+                                        storeCode: activeOrder.storeCode || null,
+                                      });
+                                    }
+
+                                    await refetchOrderItems();
+
+                                    // Recalculate order totals
+                                    if (activeOrder) {
+                                      await apiRequest(
+                                        "POST",
+                                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                        {},
+                                      );
+                                    }
+
+                                    await queryClient.invalidateQueries({
+                                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                                    });
+
+                                    toast({
+                                      title: "Đã giảm số lượng",
+                                      description: `Đã giảm "${item.productName}" xuống ${newQuantity}`,
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Lỗi",
+                                      description: "Không thể giảm số lượng",
+                                      variant: "destructive",
+                                    });
                                   }
-
-                                  await queryClient.invalidateQueries({
-                                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
-                                  });
-
-                                  toast({
-                                    title: "Đã giảm số lượng",
-                                    description: `Đã giảm "${item.productName}" xuống ${newQuantity}`,
-                                  });
-                                } catch (error) {
-                                  toast({
-                                    title: "Lỗi",
-                                    description: "Không thể giảm số lượng",
-                                    variant: "destructive",
-                                  });
                                 }
                               }
                             }}
@@ -1237,7 +1257,7 @@ export function MobileTableView({
                               try {
                                 await apiRequest(
                                   "PUT",
-                                  `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                  `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${item.id}`,
                                   {
                                     quantity: newQuantity,
                                     total: newTotal,
@@ -1248,13 +1268,13 @@ export function MobileTableView({
                                 // Recalculate order totals
                                 await apiRequest(
                                   "POST",
-                                  `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                  `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                                   {},
                                 );
 
                                 // Invalidate orders cache to refresh totals
                                 await queryClient.invalidateQueries({
-                                  queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                  queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                                 });
                               } catch (error) {
                                 toast({
@@ -1295,7 +1315,7 @@ export function MobileTableView({
                                 try {
                                   await apiRequest(
                                     "DELETE",
-                                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                    `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${item.id}`,
                                   );
                                   await refetchOrderItems();
 
@@ -1303,14 +1323,14 @@ export function MobileTableView({
                                   if (activeOrder) {
                                     await apiRequest(
                                       "POST",
-                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                                       {},
                                     );
                                   }
 
                                   // Invalidate orders cache
                                   await queryClient.invalidateQueries({
-                                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                                   });
 
                                   toast({
@@ -1357,7 +1377,7 @@ export function MobileTableView({
                             try {
                               await apiRequest(
                                 "PATCH",
-                                `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${item.id}`,
                                 {
                                   status: "progress",
                                 },
@@ -1365,7 +1385,7 @@ export function MobileTableView({
 
                               // Invalidate and refetch order items
                               await queryClient.invalidateQueries({
-                                queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder.id],
+                                queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items", activeOrder.id],
                               });
                               await refetchOrderItems();
                             } catch (error) {
@@ -1405,7 +1425,7 @@ export function MobileTableView({
             {t("tables.addItems")}
           </Button>
 
-          {/* Only show "Send all to Kitchen" button if there are items with pending status */}
+          {/* Only show "Send to Kitchen" button if there are items with pending status */}
           {orderItems && orderItems.some((item) => !item.status) && (
             <Button
               className="w-full bg-orange-600 hover:bg-orange-700"
@@ -1426,7 +1446,7 @@ export function MobileTableView({
                   const updatePromises = orderItems
                     .filter((item) => !item.status)
                     .map((item) =>
-                      apiRequest("PATCH", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`, {
+                      apiRequest("PATCH", `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${item.id}`, {
                         status: "pending",
                       }),
                     );
@@ -1439,7 +1459,7 @@ export function MobileTableView({
 
                   // Invalidate and refetch order items
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder.id],
+                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items", activeOrder.id],
                   });
                   await refetchOrderItems();
                 } catch (error) {
@@ -1461,14 +1481,12 @@ export function MobileTableView({
         <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhận hủy đơn hàng</AlertDialogTitle>
-              <AlertDialogDescription>
-                Vui lòng nhập lý do hủy đơn hàng
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t("tables.confirmCancelOrder")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("tables.enterCancelReason")}</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="py-4">
               <Textarea
-                placeholder="Nhập lý do hủy đơn..."
+                placeholder={t("tables.enterCancelReasonPlaceholder")}
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 className="min-h-[100px]"
@@ -1480,14 +1498,14 @@ export function MobileTableView({
                   setCancelReason("");
                 }}
               >
-                Hủy
+                {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   if (!cancelReason.trim()) {
                     toast({
-                      title: "Lỗi",
-                      description: "Vui lòng nhập lý do hủy đơn",
+                      title: t("common.error"),
+                      description: t("tables.reasonRequired"),
                       variant: "destructive",
                     });
                     return;
@@ -1502,13 +1520,13 @@ export function MobileTableView({
                   setCancelReason("");
 
                   toast({
-                    title: "Đã hủy",
-                    description: `Lý do: ${cancelReason}`,
+                    title: t("tables.orderCancelled"),
+                    description: `${t("tables.reason")}: ${cancelReason}`,
                   });
                 }}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Xác nhận hủy
+                {t("tables.confirmCancel")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1521,10 +1539,9 @@ export function MobileTableView({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+              <AlertDialogTitle>{t("tables.confirmDeleteItem")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Món này đã được gửi vào bếp. Vui lòng nhập ghi chú để xác nhận
-                xóa.
+                {t("tables.itemSentToKitchenCannotDeleteDirectly")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="py-4">
@@ -1537,7 +1554,7 @@ export function MobileTableView({
                 </p>
               </div>
               <Textarea
-                placeholder="Nhập lý do xóa món (bắt buộc)..."
+                placeholder={t("tables.enterReasonForDeletionPlaceholder")}
                 value={deleteItemNote}
                 onChange={(e) => setDeleteItemNote(e.target.value)}
                 className="min-h-[100px]"
@@ -1550,14 +1567,14 @@ export function MobileTableView({
                   setItemToDelete(null);
                 }}
               >
-                Hủy
+                {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
                   if (!deleteItemNote.trim()) {
                     toast({
-                      title: "Lỗi",
-                      description: "Vui lòng nhập ghi chú xóa món",
+                      title: t("common.error"),
+                      description: t("tables.reasonRequired"),
                       variant: "destructive",
                     });
                     return;
@@ -1568,13 +1585,13 @@ export function MobileTableView({
                   try {
                     await apiRequest(
                       "DELETE",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDelete.id}`,
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDelete.id}`,
                     );
                     // Recalculate order totals if there's an active order
                     if (activeOrder) {
                       await apiRequest(
                         "POST",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                         {},
                       );
                     }
@@ -1583,7 +1600,7 @@ export function MobileTableView({
 
                     // Invalidate orders cache
                     await queryClient.invalidateQueries({
-                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                     });
 
                     setShowDeleteItemDialog(false);
@@ -1591,15 +1608,15 @@ export function MobileTableView({
                     setItemToDelete(null);
                   } catch (error) {
                     toast({
-                      title: "Lỗi",
-                      description: "Không thể xóa món",
+                      title: t("common.error"),
+                      description: t("tables.cannotDeleteItem"),
                       variant: "destructive",
                     });
                   }
                 }}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Xác nhận xóa
+                {t("tables.confirmDelete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1612,9 +1629,9 @@ export function MobileTableView({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Giảm số lượng món</AlertDialogTitle>
+              <AlertDialogTitle>{t("tables.decreaseItemQuantity")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Bạn có thể giảm số lượng trực tiếp hoặc tách món với ghi chú riêng
+                {t("tables.decreaseQuantityOrSplitWithNote")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="py-4">
@@ -1629,7 +1646,7 @@ export function MobileTableView({
               </div>
               <div className="mb-4">
                 <label className="text-sm font-medium mb-2 block">
-                  Số lượng muốn giảm:
+                  {t("tables.quantityToDecrease")}:
                 </label>
                 <Input
                   type="number"
@@ -1654,7 +1671,7 @@ export function MobileTableView({
                 />
               </div>
               <Textarea
-                placeholder="Nhập ghi chú (tùy chọn - nếu có ghi chú sẽ tách món riêng)..."
+                placeholder={t("tables.enterNoteOptionalPlaceholder")}
                 value={decreaseNote}
                 onChange={(e) => setDecreaseNote(e.target.value)}
                 className="min-h-[100px]"
@@ -1668,7 +1685,7 @@ export function MobileTableView({
                   setDecreaseQuantity(1);
                 }}
               >
-                Hủy
+                {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
@@ -1687,8 +1704,8 @@ export function MobileTableView({
                     quantityToDecrease > currentQuantity
                   ) {
                     toast({
-                      title: "Lỗi",
-                      description: "Số lượng không hợp lệ",
+                      title: t("common.error"),
+                      description: t("tables.invalidQuantity"),
                       variant: "destructive",
                     });
                     return;
@@ -1707,7 +1724,7 @@ export function MobileTableView({
                         const newTotal = (unitPrice * newQuantity).toFixed(2);
                         await apiRequest(
                           "PUT",
-                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                           {
                             quantity: newQuantity,
                             total: newTotal,
@@ -1717,7 +1734,7 @@ export function MobileTableView({
                         // Delete item if quantity becomes 0
                         await apiRequest(
                           "DELETE",
-                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                         );
                       }
 
@@ -1727,7 +1744,7 @@ export function MobileTableView({
                       ).toFixed(2);
                       await apiRequest(
                         "POST",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/items`,
                         {
                           items: [
                             {
@@ -1743,17 +1760,20 @@ export function MobileTableView({
                       );
 
                       // Save order change history for split with note
-                      const userName = "Mobile User";
-                      const ipAddress = "mobile";
-                      const detailedDescription = `Tách món: ${itemToDecreaseWithNote.productName} (SL gốc: ${currentQuantity}, Giảm: ${quantityToDecrease}, Còn lại: ${newQuantity}, Giá: ${Math.floor(parseFloat(itemToDecreaseWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Ghi chú: ${decreaseNote}`;
-
-                      await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
                         orderId: activeOrder.id,
                         orderNumber: activeOrder.orderNumber,
-                        action: "decrease_quantity",
-                        detailedDescription,
-                        userName,
-                        ipAddress,
+                        ipAddress: window.location.hostname || "unknown",
+                        userName: "Mobile User",
+                        action: "reduce_quantity",
+                        detailedDescription: {
+                          productName: itemToDecreaseWithNote.productName,
+                          oldQuantity: currentQuantity,
+                          newQuantity: newQuantity,
+                          unitPrice: itemToDecreaseWithNote.unitPrice,
+                          note: `Tách món với ghi chú: ${decreaseNote}`,
+                        },
+                        storeCode: activeOrder.storeCode || null,
                       });
                     } else {
                       // Case 2: Không có ghi chú - chỉ giảm số lượng
@@ -1761,7 +1781,7 @@ export function MobileTableView({
                         const newTotal = (unitPrice * newQuantity).toFixed(2);
                         await apiRequest(
                           "PUT",
-                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                           {
                             quantity: newQuantity,
                             total: newTotal,
@@ -1771,29 +1791,32 @@ export function MobileTableView({
                         // Delete item if quantity becomes 0
                         await apiRequest(
                           "DELETE",
-                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                         );
                       }
 
                       // Save order change history for simple decrease
-                      const userName = "Mobile User";
-                      const ipAddress = "mobile";
-                      const detailedDescription = `Giảm số lượng: ${itemToDecreaseWithNote.productName} (SL: ${currentQuantity} → ${newQuantity}, Giảm: ${quantityToDecrease}, Giá: ${Math.floor(parseFloat(itemToDecreaseWithNote.unitPrice)).toLocaleString("vi-VN")} ₫)`;
-
-                      await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
                         orderId: activeOrder.id,
                         orderNumber: activeOrder.orderNumber,
-                        action: "decrease_quantity",
-                        detailedDescription,
-                        userName,
-                        ipAddress,
+                        ipAddress: window.location.hostname || "unknown",
+                        userName: "Mobile User",
+                        action: "reduce_quantity",
+                        detailedDescription: {
+                          productName: itemToDecreaseWithNote.productName,
+                          oldQuantity: currentQuantity,
+                          newQuantity: newQuantity,
+                          unitPrice: itemToDecreaseWithNote.unitPrice,
+                          note: "Giảm số lượng sản phẩm",
+                        },
+                        storeCode: activeOrder.storeCode || null,
                       });
                     }
 
                     // Recalculate order totals
                     await apiRequest(
                       "POST",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                       {},
                     );
 
@@ -1801,7 +1824,7 @@ export function MobileTableView({
 
                     // Invalidate orders cache
                     await queryClient.invalidateQueries({
-                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                     });
 
                     setShowDecreaseNoteDialog(false);
@@ -1811,15 +1834,15 @@ export function MobileTableView({
                   } catch (error) {
                     console.error("Error decreasing quantity:", error);
                     toast({
-                      title: "Lỗi",
-                      description: "Không thể giảm số lượng",
+                      title: t("common.error"),
+                      description: t("tables.cannotDecreaseQuantity"),
                       variant: "destructive",
                     });
                   }
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Xác nhận
+                {t("common.confirm")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1832,13 +1855,12 @@ export function MobileTableView({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+              <AlertDialogTitle>{t("tables.confirmDeleteItem")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Bạn có chắc chắn muốn xóa "{itemToDeleteWithNote?.productName}"
-                khỏi đơn hàng?
+                {t("tables.areYouSureToDeleteItem")}
                 {itemToDeleteWithNote?.status && (
                   <span className="block mt-2 text-orange-600 font-medium">
-                    ⚠️ Món này đã được gửi bếp
+                    ⚠️ {t("tables.itemAlreadySentToKitchen")}
                   </span>
                 )}
               </AlertDialogDescription>
@@ -1846,12 +1868,12 @@ export function MobileTableView({
 
             <div className="my-4">
               <label className="text-sm font-medium mb-2 block">
-                Lý do xóa món:
+                {t("tables.reasonForDeletion")}:
               </label>
               <Textarea
                 value={deleteNote}
                 onChange={(e) => setDeleteNote(e.target.value)}
-                placeholder="Nhập lý do xóa món (bắt buộc)"
+                placeholder={t("tables.enterReasonForDeletionPlaceholder")}
                 className="min-h-[80px]"
               />
             </div>
@@ -1863,14 +1885,14 @@ export function MobileTableView({
                   setItemToDeleteWithNote(null);
                 }}
               >
-                Hủy
+                {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
                   if (!deleteNote.trim()) {
                     toast({
-                      title: "Thiếu thông tin",
-                      description: "Vui lòng nhập lý do xóa món",
+                      title: t("common.error"),
+                      description: t("tables.reasonRequired"),
                       variant: "destructive",
                     });
                     return;
@@ -1886,10 +1908,10 @@ export function MobileTableView({
 
                       const detailedDescription = `Xóa món: ${itemToDeleteWithNote.productName} (SL: ${parseFloat(itemToDeleteWithNote.quantity || "1")}, Giá: ${Math.floor(parseFloat(itemToDeleteWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Lý do: ${deleteNote}`;
 
-                      await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
                         orderId: activeOrder.id,
                         orderNumber: activeOrder.orderNumber,
-                        action: "delete_item",
+                        action: "delete",
                         detailedDescription,
                         userName,
                         ipAddress,
@@ -1899,14 +1921,14 @@ export function MobileTableView({
                     // Delete the item
                     await apiRequest(
                       "DELETE",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
                     );
 
                     // Recalculate order totals
                     if (activeOrder) {
                       await apiRequest(
                         "POST",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                         {},
                       );
                     }
@@ -1916,11 +1938,11 @@ export function MobileTableView({
 
                     // Invalidate orders cache
                     await queryClient.invalidateQueries({
-                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                     });
 
                     toast({
-                      title: "Đã xóa món",
+                      title: t("tables.itemDeleted"),
                       description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
                     });
 
@@ -1931,15 +1953,15 @@ export function MobileTableView({
                   } catch (error) {
                     console.error("❌ Error deleting item:", error);
                     toast({
-                      title: "Lỗi",
-                      description: "Không thể xóa món",
+                      title: t("common.error"),
+                      description: t("tables.cannotDeleteItem"),
                       variant: "destructive",
                     });
                   }
                 }}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Xóa món
+                {t("tables.deleteItem")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -2225,7 +2247,7 @@ export function MobileTableView({
 
                       {/* Item Discount */}
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600">Giảm giá SP:</span>
+                        <span className="text-gray-600">{t("common.itemDiscount")}:</span>
                         <Input
                           type="text"
                           inputMode="numeric"
@@ -2270,9 +2292,8 @@ export function MobileTableView({
                               if (value > itemTotal) {
                                 discountVnd = 0;
                                 toast({
-                                  title: "Lỗi giảm giá",
-                                  description:
-                                    "Giảm giá không được vượt quá giá sản phẩm",
+                                  title: t("common.error"),
+                                  description: t("tables.discountCannotExceedPrice"),
                                   variant: "destructive",
                                 });
                               }
@@ -2777,14 +2798,12 @@ export function MobileTableView({
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận hủy đơn hàng</AlertDialogTitle>
-            <AlertDialogDescription>
-              Vui lòng nhập lý do hủy đơn hàng
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("tables.confirmCancelOrder")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("tables.enterCancelReason")}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Textarea
-              placeholder="Nhập lý do hủy đơn..."
+              placeholder={t("tables.enterCancelReasonPlaceholder")}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               className="min-h-[100px]"
@@ -2796,14 +2815,14 @@ export function MobileTableView({
                 setCancelReason("");
               }}
             >
-              Hủy
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (!cancelReason.trim()) {
                   toast({
-                    title: "Lỗi",
-                    description: "Vui lòng nhập lý do hủy đơn",
+                    title: t("common.error"),
+                    description: t("tables.reasonRequired"),
                     variant: "destructive",
                   });
                   return;
@@ -2818,13 +2837,13 @@ export function MobileTableView({
                 setCancelReason("");
 
                 toast({
-                  title: "Đã hủy",
-                  description: `Lý do: ${cancelReason}`,
+                  title: t("tables.orderCancelled"),
+                  description: `${t("tables.reason")}: ${cancelReason}`,
                 });
               }}
               className="bg-red-600 hover:bg-red-700"
             >
-              Xác nhận hủy
+              {t("tables.confirmCancel")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2837,10 +2856,9 @@ export function MobileTableView({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+            <AlertDialogTitle>{t("tables.confirmDeleteItem")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Món này đã được gửi vào bếp. Vui lòng nhập ghi chú để xác nhận
-              xóa.
+              {t("tables.itemSentToKitchenCannotDeleteDirectly")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -2853,7 +2871,7 @@ export function MobileTableView({
               </p>
             </div>
             <Textarea
-              placeholder="Nhập lý do xóa món (bắt buộc)..."
+              placeholder={t("tables.enterReasonForDeletionPlaceholder")}
               value={deleteItemNote}
               onChange={(e) => setDeleteItemNote(e.target.value)}
               className="min-h-[100px]"
@@ -2866,14 +2884,14 @@ export function MobileTableView({
                 setItemToDelete(null);
               }}
             >
-              Hủy
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
                 if (!deleteItemNote.trim()) {
                   toast({
-                    title: "Lỗi",
-                    description: "Vui lòng nhập ghi chú xóa món",
+                    title: t("common.error"),
+                    description: t("tables.reasonRequired"),
                     variant: "destructive",
                   });
                   return;
@@ -2884,13 +2902,13 @@ export function MobileTableView({
                 try {
                   await apiRequest(
                     "DELETE",
-                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDelete.id}`,
+                    `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDelete.id}`,
                   );
                   // Recalculate order totals if there's an active order
                   if (activeOrder) {
                     await apiRequest(
                       "POST",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                       {},
                     );
                   }
@@ -2899,7 +2917,7 @@ export function MobileTableView({
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                   });
 
                   setShowDeleteItemDialog(false);
@@ -2907,15 +2925,15 @@ export function MobileTableView({
                   setItemToDelete(null);
                 } catch (error) {
                   toast({
-                    title: "Lỗi",
-                    description: "Không thể xóa món",
+                    title: t("common.error"),
+                    description: t("tables.cannotDeleteItem"),
                     variant: "destructive",
                   });
                 }
               }}
               className="bg-red-600 hover:bg-red-700"
             >
-              Xác nhận xóa
+              {t("tables.confirmDelete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2928,24 +2946,24 @@ export function MobileTableView({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Giảm số lượng món</AlertDialogTitle>
+            <AlertDialogTitle>{t("tables.decreaseItemQuantity")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có thể giảm số lượng trực tiếp hoặc tách món với ghi chú riêng
+              {t("tables.decreaseQuantityOrSplitWithNote")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <div className="mb-3">
               <p className="text-sm font-medium">
-                Món: {itemToDecreaseWithNote?.productName}
+                {t("tables.itemName")}: {itemToDecreaseWithNote?.productName}
               </p>
               <p className="text-sm text-gray-500">
-                Số lượng hiện tại:{" "}
+                {t("tables.currentQuantity")}:{" "}
                 {parseFloat(itemToDecreaseWithNote?.quantity || "0")}
               </p>
             </div>
             <div className="mb-4">
               <label className="text-sm font-medium mb-2 block">
-                Số lượng muốn giảm:
+                {t("tables.quantityToDecrease")}:
               </label>
               <Input
                 type="number"
@@ -2970,7 +2988,7 @@ export function MobileTableView({
               />
             </div>
             <Textarea
-              placeholder="Nhập ghi chú (tùy chọn - nếu có ghi chú sẽ tách món riêng)..."
+              placeholder={t("tables.enterNoteOptionalPlaceholder")}
               value={decreaseNote}
               onChange={(e) => setDecreaseNote(e.target.value)}
               className="min-h-[100px]"
@@ -2984,7 +3002,7 @@ export function MobileTableView({
                 setDecreaseQuantity(1);
               }}
             >
-              Hủy
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
@@ -3003,8 +3021,8 @@ export function MobileTableView({
                   quantityToDecrease > currentQuantity
                 ) {
                   toast({
-                    title: "Lỗi",
-                    description: "Số lượng không hợp lệ",
+                    title: t("common.error"),
+                    description: t("tables.invalidQuantity"),
                     variant: "destructive",
                   });
                   return;
@@ -3023,7 +3041,7 @@ export function MobileTableView({
                       const newTotal = (unitPrice * newQuantity).toFixed(2);
                       await apiRequest(
                         "PUT",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                         {
                           quantity: newQuantity,
                           total: newTotal,
@@ -3033,7 +3051,7 @@ export function MobileTableView({
                       // Delete item if quantity becomes 0
                       await apiRequest(
                         "DELETE",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                       );
                     }
 
@@ -3043,7 +3061,7 @@ export function MobileTableView({
                     ).toFixed(2);
                     await apiRequest(
                       "POST",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items`,
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/items`,
                       {
                         items: [
                           {
@@ -3063,7 +3081,7 @@ export function MobileTableView({
                       const newTotal = (unitPrice * newQuantity).toFixed(2);
                       await apiRequest(
                         "PUT",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                         {
                           quantity: newQuantity,
                           total: newTotal,
@@ -3073,7 +3091,7 @@ export function MobileTableView({
                       // Delete item if quantity becomes 0
                       await apiRequest(
                         "DELETE",
-                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                       );
                     }
                   }
@@ -3081,7 +3099,7 @@ export function MobileTableView({
                   // Recalculate order totals
                   await apiRequest(
                     "POST",
-                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                    `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                     {},
                   );
 
@@ -3089,7 +3107,7 @@ export function MobileTableView({
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                   });
 
                   setShowDecreaseNoteDialog(false);
@@ -3099,15 +3117,15 @@ export function MobileTableView({
                 } catch (error) {
                   console.error("Error decreasing quantity:", error);
                   toast({
-                    title: "Lỗi",
-                    description: "Không thể giảm số lượng",
+                    title: t("common.error"),
+                    description: t("tables.cannotDecreaseQuantity"),
                     variant: "destructive",
                   });
                 }
               }}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Xác nhận
+              {t("common.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -3120,13 +3138,12 @@ export function MobileTableView({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+            <AlertDialogTitle>{t("tables.confirmDeleteItem")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa "{itemToDeleteWithNote?.productName}"
-              khỏi đơn hàng?
+              {t("tables.areYouSureToDeleteItem")}
               {itemToDeleteWithNote?.status && (
                 <span className="block mt-2 text-orange-600 font-medium">
-                  ⚠️ Món này đã được gửi bếp
+                  ⚠️ {t("tables.itemAlreadySentToKitchen")}
                 </span>
               )}
             </AlertDialogDescription>
@@ -3134,12 +3151,12 @@ export function MobileTableView({
 
           <div className="my-4">
             <label className="text-sm font-medium mb-2 block">
-              Lý do xóa món:
+              {t("tables.reasonForDeletion")}:
             </label>
             <Textarea
               value={deleteNote}
               onChange={(e) => setDeleteNote(e.target.value)}
-              placeholder="Nhập lý do xóa món (bắt buộc)"
+              placeholder={t("tables.enterReasonForDeletionPlaceholder")}
               className="min-h-[80px]"
             />
           </div>
@@ -3151,14 +3168,14 @@ export function MobileTableView({
                 setItemToDeleteWithNote(null);
               }}
             >
-              Hủy
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
                 if (!deleteNote.trim()) {
                   toast({
-                    title: "Thiếu thông tin",
-                    description: "Vui lòng nhập lý do xóa món",
+                    title: t("common.error"),
+                    description: t("tables.reasonRequired"),
                     variant: "destructive",
                   });
                   return;
@@ -3174,7 +3191,7 @@ export function MobileTableView({
 
                     const detailedDescription = `Xóa món: ${itemToDeleteWithNote.productName} (SL: ${parseFloat(itemToDeleteWithNote.quantity || "1")}, Giá: ${Math.floor(parseFloat(itemToDeleteWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Lý do: ${deleteNote}`;
 
-                    await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                    await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
                       orderId: activeOrder.id,
                       orderNumber: activeOrder.orderNumber,
                       action: "delete_item",
@@ -3187,14 +3204,14 @@ export function MobileTableView({
                   // Delete the item
                   await apiRequest(
                     "DELETE",
-                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                    `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
                   );
 
                   // Recalculate order totals
                   if (activeOrder) {
                     await apiRequest(
                       "POST",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                       {},
                     );
                   }
@@ -3204,11 +3221,11 @@ export function MobileTableView({
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
                   });
 
                   toast({
-                    title: "Đã xóa món",
+                    title: t("tables.itemDeleted"),
                     description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
                   });
 
@@ -3219,15 +3236,15 @@ export function MobileTableView({
                 } catch (error) {
                   console.error("❌ Error deleting item:", error);
                   toast({
-                    title: "Lỗi",
-                    description: "Không thể xóa món",
+                    title: t("common.error"),
+                    description: t("tables.cannotDeleteItem"),
                     variant: "destructive",
                   });
                 }
               }}
               className="bg-red-600 hover:bg-red-700"
             >
-              Xóa món
+              {t("tables.deleteItem")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -159,7 +159,7 @@ export function EInvoiceModal({
         orderId,
       );
       // Pass the paymentMethod to the PUT request for status update
-      return apiRequest("PUT", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${orderId}/status`, {
+      return apiRequest("PUT", `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${orderId}/status`, {
         status: "paid",
         paymentMethod, // Ensure paymentMethod is passed here
       });
@@ -169,8 +169,8 @@ export function EInvoiceModal({
         "🎯 E-invoice modal completed payment successfully for order:",
         variables.orderId,
       );
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables"] });
 
       toast({
         title: `${t("common.success")}`,
@@ -202,13 +202,13 @@ export function EInvoiceModal({
 
   // Fetch E-invoice connections
   const { data: eInvoiceConnections = [] } = useQuery<any[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/einvoice-connections"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/einvoice-connections"],
     enabled: isOpen,
   });
 
   // Fetch active invoice templates for dropdown
   const { data: allInvoiceTemplates = [] } = useQuery<any[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/invoice-templates/active"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/invoice-templates/active"],
     enabled: isOpen,
   });
 
@@ -346,7 +346,7 @@ export function EInvoiceModal({
     setIsTaxCodeLoading(true);
     try {
       // Use a proxy endpoint through our server to avoid CORS issues
-      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tax-code-lookup", {
+      const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tax-code-lookup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -583,7 +583,7 @@ export function EInvoiceModal({
       );
 
       // Lưu hóa đơn vào bảng invoices và invoice_items
-      const invoiceResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/invoices", {
+      const invoiceResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/invoices", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -998,7 +998,7 @@ export function EInvoiceModal({
     );
 
     // Call the proxy API
-    const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/einvoice/publish", {
+    const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/einvoice/publish", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1137,7 +1137,7 @@ export function EInvoiceModal({
 
         console.log("💾 Saving published invoice to database:", invoicePayload);
 
-        const invoiceResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/invoices", {
+        const invoiceResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/invoices", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1188,7 +1188,7 @@ export function EInvoiceModal({
 
         console.log("💾 Saving published order to database:", orderData);
 
-        const saveResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", {
+        const saveResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1356,7 +1356,7 @@ export function EInvoiceModal({
       };
 
       try {
-        const transactionResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/transactions", {
+        const transactionResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/transactions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

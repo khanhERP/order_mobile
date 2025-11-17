@@ -91,9 +91,9 @@ export function PaymentMethodModal({
 
   // Query store settings to get dynamic address - ALWAYS CALL THIS HOOK
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings");
+      const response = await apiRequest("GET", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings");
       return response.json();
     },
     enabled: isOpen, // Only fetch when modal is open
@@ -464,7 +464,7 @@ export function PaymentMethodModal({
             try {
               const protocol =
                 window.location.protocol === "https:" ? "wss:" : "ws:";
-              const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+              const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
               console.log(
                 "🎯 QR Payment: Connecting to WebSocket for customer display:",
                 wsUrl,
@@ -599,7 +599,7 @@ export function PaymentMethodModal({
             try {
               const protocol =
                 window.location.protocol === "https:" ? "wss:" : "ws:";
-              const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+              const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
               console.log(
                 "Fallback QR Payment: Attempting to connect to WebSocket:",
                 wsUrl,
@@ -770,7 +770,7 @@ export function PaymentMethodModal({
         try {
           const protocol =
             window.location.protocol === "https:" ? "wss:" : "ws:";
-          const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+          const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
           const ws = new WebSocket(wsUrl);
 
           ws.onopen = () => {
@@ -937,7 +937,7 @@ export function PaymentMethodModal({
         console.log(`📦 Order items:`, orderItems);
 
         // Create order via API
-        const createResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", {
+        const createResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -981,7 +981,7 @@ export function PaymentMethodModal({
 
         try {
           // First update the payment method and status
-          const updateResponse = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${orderInfo.id}`, {
+          const updateResponse = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${orderInfo.id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -1016,7 +1016,7 @@ export function PaymentMethodModal({
                 );
 
                 // Check if there are any other unpaid orders on this table
-                const ordersResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders");
+                const ordersResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders");
                 const allOrders = await ordersResponse.json();
 
                 const otherActiveOrders = Array.isArray(allOrders)
@@ -1047,7 +1047,7 @@ export function PaymentMethodModal({
                   );
 
                   const tableUpdateResponse = await fetch(
-                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables/${updatedOrder.tableId}/status`,
+                    `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables/${updatedOrder.tableId}/status`,
                     {
                       method: "PUT",
                       headers: {
@@ -1240,7 +1240,7 @@ export function PaymentMethodModal({
       console.log("📦 Order items:", orderItems);
 
       // Create order via API
-      const createResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", {
+      const createResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1283,7 +1283,7 @@ export function PaymentMethodModal({
         );
 
         const statusResponse = await fetch(
-          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${orderInfo.id}/status`,
+          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${orderInfo.id}/status`,
           {
             method: "PUT",
             headers: {
@@ -1337,7 +1337,7 @@ export function PaymentMethodModal({
     // Send message to customer display to clear QR payment
     try {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+      const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -1526,7 +1526,7 @@ export function PaymentMethodModal({
       console.log("📦 Order items:", orderItems);
 
       // Create order via API
-      const createResponse = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", {
+      const createResponse = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1571,7 +1571,7 @@ export function PaymentMethodModal({
         );
 
         const statusResponse = await fetch(
-          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${orderInfo.id}/status`,
+          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${orderInfo.id}/status`,
           {
             method: "PUT",
             headers: {
@@ -1813,7 +1813,7 @@ export function PaymentMethodModal({
         try {
           const protocol =
             window.location.protocol === "https:" ? "wss:" : "ws:";
-          const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+          const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
           const ws = new WebSocket(wsUrl);
 
           ws.onopen = () => {
@@ -1915,7 +1915,7 @@ export function PaymentMethodModal({
             try {
               const protocol =
                 window.location.protocol === "https:" ? "wss:" : "ws:";
-              const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+              const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
               const ws = new WebSocket(wsUrl);
 
               ws.onopen = () => {
@@ -2045,7 +2045,7 @@ export function PaymentMethodModal({
                     try {
                       const protocol =
                         window.location.protocol === "https:" ? "wss:" : "ws:";
-                      const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+                      const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
                       const ws = new WebSocket(wsUrl);
 
                       ws.onopen = () => {
@@ -2132,7 +2132,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+                        const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {
@@ -2178,7 +2178,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+                        const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {
@@ -2364,7 +2364,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+                        const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {
@@ -2401,7 +2401,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
+                        const wsUrl = `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {

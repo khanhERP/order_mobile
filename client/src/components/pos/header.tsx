@@ -64,20 +64,20 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
 
   // Fetch store settings
   const { data: storeSettings } = useQuery<StoreSettings>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings"],
   });
 
   // Fetch employees
   const { data: employees } = useQuery<Employee[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees"],
   });
 
   // Fetch today's attendance records
   const todayDate = new Date().toISOString().split("T")[0];
   const { data: todayAttendance } = useQuery<AttendanceRecord[]>({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance", todayDate],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance", todayDate],
     queryFn: async () => {
-      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/attendance?date=${todayDate}`);
+      const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/attendance?date=${todayDate}`);
       if (!response.ok) {
         throw new Error("Failed to fetch attendance records");
       }

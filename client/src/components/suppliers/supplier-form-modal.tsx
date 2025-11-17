@@ -72,11 +72,11 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertSupplier) => {
-      const response = await apiRequest('POST', 'https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/suppliers', data);
+      const response = await apiRequest('POST', 'https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/suppliers', data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/suppliers'] });
       toast({
         title: t("common.successTitle"),
         description: t("suppliers.createSuccess"),
@@ -94,11 +94,11 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<InsertSupplier>) => {
-      const response = await apiRequest('PUT', `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/suppliers/${supplier!.id}`, data);
+      const response = await apiRequest('PUT', `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/suppliers/${supplier!.id}`, data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/suppliers'] });
       toast({
         title: t("common.successTitle"),
         description: t("suppliers.updateSuccess"),

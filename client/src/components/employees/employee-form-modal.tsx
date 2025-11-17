@@ -67,7 +67,7 @@ export function EmployeeFormModal({
   // Generate employee ID for new employees
   const generateEmployeeId = async () => {
     try {
-      const response = await apiRequest("GET", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees/next-id");
+      const response = await apiRequest("GET", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees/next-id");
       const data = await response.json();
       return data.nextId;
     } catch (error) {
@@ -119,7 +119,7 @@ export function EmployeeFormModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertEmployee) => {
-      const response = await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees", data);
+      const response = await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees", data);
       if (!response.ok) {
         const errorData = await response.json();
         throw errorData;
@@ -127,7 +127,7 @@ export function EmployeeFormModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees"] });
       toast({
         title: t("common.successTitle"),
         description: t("employees.addEmployeeSuccess"),
@@ -173,7 +173,7 @@ export function EmployeeFormModal({
     mutationFn: async (data: InsertEmployee) => {
       const response = await apiRequest(
         "PUT",
-        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees/${employee?.id}`,
+        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees/${employee?.id}`,
         data,
       );
       if (!response.ok) {
@@ -183,7 +183,7 @@ export function EmployeeFormModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees"] });
+      queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees"] });
       toast({
         title: t("common.successTitle"),
         description: t("employees.updateEmployeeSuccess"),

@@ -113,7 +113,7 @@ export function MenuReport({
     refetch,
   } = useQuery({
     queryKey: [
-      "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/menu-analysis",
+      "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/menu-analysis",
       dateRange.start,
       dateRange.end,
       selectedCategory,
@@ -128,7 +128,7 @@ export function MenuReport({
 
         const response = await apiRequest(
           "GET",
-          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/menu-analysis?${params.toString()}`,
+          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/menu-analysis?${params.toString()}`,
         );
         if (!response.ok) {
           throw new Error(`Failed to fetch menu analysis: ${response.status}`);
@@ -178,7 +178,7 @@ export function MenuReport({
   };
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/menu-analysis"] });
+    queryClient.invalidateQueries({ queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/menu-analysis"] });
     refetch();
   };
 

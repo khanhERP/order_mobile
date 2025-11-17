@@ -105,9 +105,9 @@ export function SalesChartReport() {
 
   // Query store settings for priceIncludesTax
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings");
+      const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/store-settings");
       if (!response.ok) {
         throw new Error("Failed to fetch store settings");
       }
@@ -123,7 +123,7 @@ export function SalesChartReport() {
     error: ordersError,
   } = useQuery({
     queryKey: [
-      "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/date-range",
+      "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/date-range",
       startDate,
       endDate,
       startTime,
@@ -168,7 +168,7 @@ export function SalesChartReport() {
         });
 
         const response = await fetch(
-          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/date-range/${encodeURIComponent(startDateTimeISO)}/${encodeURIComponent(endDateTimeISO)}`,
+          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/date-range/${encodeURIComponent(startDateTimeISO)}/${encodeURIComponent(endDateTimeISO)}`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -202,10 +202,10 @@ export function SalesChartReport() {
 
   // Query order items for all orders
   const { data: orderItems = [], isLoading: orderItemsLoading } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items");
+        const response = await fetch("https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -226,22 +226,22 @@ export function SalesChartReport() {
   });
 
   const { data: tables } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables"],
   });
 
   // Combined loading state
   const isLoading = ordersLoading || orderItemsLoading;
 
   const { data: employees } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/employees"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/employees"],
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: products } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products", selectedCategory, productType, productSearch],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/products", selectedCategory, productType, productSearch],
     queryFn: async () => {
       const response = await fetch(
-        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/${selectedCategory}/${productType}/${productSearch || ""}`,
+        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/products/${selectedCategory}/${productType}/${productSearch || ""}`,
       );
       if (!response.ok) throw new Error("Failed to fetch products");
       return response.json();
@@ -250,15 +250,15 @@ export function SalesChartReport() {
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/categories"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/categories"],
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: customers } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers", customerSearch, customerStatus],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers", customerSearch, customerStatus],
     queryFn: async () => {
       const response = await fetch(
-        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/${customerSearch || "all"}/${customerStatus}`,
+        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers/${customerSearch || "all"}/${customerStatus}`,
       );
       if (!response.ok) throw new Error("Failed to fetch customers");
       return response.json();
@@ -270,7 +270,7 @@ export function SalesChartReport() {
   const { data: productAnalysisData, isLoading: productAnalysisLoading } =
     useQuery({
       queryKey: [
-        "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/product-analysis",
+        "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/product-analysis",
         startDate, // Use startDate for consistency
         endDate, // Use endDate for consistency
         selectedCategory,
@@ -285,7 +285,7 @@ export function SalesChartReport() {
           productType,
           productSearch: productSearch || "",
         });
-        const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/product-analysis?${params}`);
+        const response = await fetch(`https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/product-analysis?${params}`);
         if (!response.ok) throw new Error("Failed to fetch product analysis");
         return response.json();
       },
@@ -294,7 +294,7 @@ export function SalesChartReport() {
     });
 
   const { data: transactions } = useQuery({
-    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/transactions"],
+    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/transactions"],
     staleTime: 5 * 60 * 1000,
   });
 

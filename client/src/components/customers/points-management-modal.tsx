@@ -57,13 +57,13 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
 
   // Fetch customers
   const { data: customers, isLoading: customersLoading } = useQuery<Customer[]>({
-    queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'],
+    queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers'],
     enabled: isOpen,
   });
 
   // Fetch point transactions history
   const { data: pointTransactions, isLoading: transactionsLoading } = useQuery<PointTransaction[]>({
-    queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/point-transactions'],
+    queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/point-transactions'],
     enabled: isOpen && activeTab === 'history',
   });
 
@@ -75,7 +75,7 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
       type: string; 
       description: string 
     }) => {
-      const response = await apiRequest('POST', 'https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/adjust-points', {
+      const response = await apiRequest('POST', 'https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers/adjust-points', {
         customerId,
         points,
         type,
@@ -84,8 +84,8 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'] });
-      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/point-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/point-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['customer-points', selectedCustomer?.id] });
       toast({
         title: t("customers.customerUpdated"),
@@ -107,15 +107,15 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
   // Point payment mutation
   const processPaymentMutation = useMutation({
     mutationFn: async ({ customerId, points }: { customerId: number; points: number }) => {
-      const response = await apiRequest('POST', 'https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/redeem-points', {
+      const response = await apiRequest('POST', 'https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers/redeem-points', {
         customerId,
         points
       });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'] });
-      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/point-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/customers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/point-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['customer-points', selectedCustomer?.id] });
       toast({
         title: t("common.success"),
