@@ -40,9 +40,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogOverlay,
-  AlertDialogPortal,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
 interface MobileTableViewProps {
@@ -227,24 +233,6 @@ export function MobileTableView({
   // Track if we've already loaded existing items to avoid duplicate loading
   const [hasLoadedExistingItems, setHasLoadedExistingItems] = useState(false);
 
-  // DISABLED: Do not load existing order items into tempCart
-  // This prevents merging/adding quantities when user clicks "Add items"
-  // Instead, user starts with empty cart and manually adds items they want
-  // When confirmed, it will REPLACE all existing items with new cart items
-  useEffect(() => {
-    // Intentionally disabled - do not auto-load existing items
-    console.log(
-      "ℹ️ Auto-load existing items is DISABLED - user starts with empty cart",
-    );
-  }, [
-    viewMode,
-    activeOrder,
-    orderItems,
-    products,
-    tempCart.length,
-    hasLoadedExistingItems,
-  ]);
-
   // Reset the hasLoadedExistingItems flag when switching back to order view
   useEffect(() => {
     if (viewMode === "order") {
@@ -395,10 +383,12 @@ export function MobileTableView({
           productName: string;
           existingQty: number;
           addQty: number;
-          newQty: number;
+          quantity: number;
           unitPrice: number;
-          discountVnd: number;
+          discount: number;
           total: number;
+          tax: number;
+          status: string;
         }> = [];
 
         const itemsToAdd: Array<{
@@ -487,13 +477,14 @@ export function MobileTableView({
             itemsToUpdate.push({
               id: existingItem.id,
               productName: cartItem.product.name,
-              existingQty,
-              addQty,
-              newQty,
-              unitPrice,
-              discountVnd: mergedDiscountVnd,
+              existingQty: existingQty,
+              addQty: addQty,
+              quantity: newQty,
+              unitPrice: unitPrice,
+              discount: mergedDiscountVnd,
               total: newTotal,
               tax: tax,
+              status: existingItem.status, // Preserve existing status
             });
           } else {
             // === CASE 2: ADD NEW ITEM ===
@@ -1105,102 +1096,118 @@ export function MobileTableView({
                                 item,
                               );
 
-                              // Check if item has been sent to kitchen
-                              if (!item.status || item.status === "") {
-                                // Item not sent to kitchen - decrease quantity directly
-                                console.log(
-                                  "✅ Item not sent to kitchen, decreasing directly",
-                                );
-                                const newQuantity =
-                                  parseFloat(item.quantity) - 1;
+                              const currentQuantity = parseFloat(item.quantity);
+                              const newQuantity = currentQuantity - 1;
 
-                                if (newQuantity <= 0) {
-                                  // Delete item if quantity becomes 0
-                                  try {
-                                    await apiRequest(
-                                      "DELETE",
-                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
-                                    );
-                                    await refetchOrderItems();
+                              if (newQuantity <= 0) {
+                                // Delete item if quantity becomes 0
+                                try {
+                                  await apiRequest(
+                                    "DELETE",
+                                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                  );
+                                  
+                                  // Save order change history
+                                  if (activeOrder) {
+                                    const userName = "Mobile User";
+                                    const ipAddress = "mobile";
+                                    const detailedDescription = `Xóa món: ${item.productName} (SL: ${currentQuantity}, Giá: ${Math.floor(parseFloat(item.unitPrice)).toLocaleString("vi-VN")} ₫)`;
 
-                                    // Recalculate order totals
-                                    if (activeOrder) {
-                                      await apiRequest(
-                                        "POST",
-                                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                                        {},
-                                      );
-                                    }
-
-                                    await queryClient.invalidateQueries({
-                                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
-                                    });
-
-                                    toast({
-                                      title: "Đã xóa món",
-                                      description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
-                                    });
-                                  } catch (error) {
-                                    toast({
-                                      title: "Lỗi",
-                                      description: "Không thể xóa món",
-                                      variant: "destructive",
+                                    await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                                      orderId: activeOrder.id,
+                                      orderNumber: activeOrder.orderNumber,
+                                      action: "delete_item",
+                                      detailedDescription,
+                                      userName,
+                                      ipAddress,
                                     });
                                   }
-                                } else {
-                                  // Decrease quantity by 1
-                                  try {
-                                    const unitPrice = parseFloat(
-                                      item.unitPrice,
-                                    );
-                                    const newTotal = (
-                                      unitPrice * newQuantity
-                                    ).toFixed(2);
 
+                                  await refetchOrderItems();
+
+                                  // Recalculate order totals
+                                  if (activeOrder) {
                                     await apiRequest(
-                                      "PUT",
-                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
-                                      {
-                                        quantity: newQuantity,
-                                        total: newTotal,
-                                      },
+                                      "POST",
+                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                      {},
                                     );
-                                    await refetchOrderItems();
-
-                                    // Recalculate order totals
-                                    if (activeOrder) {
-                                      await apiRequest(
-                                        "POST",
-                                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                                        {},
-                                      );
-                                    }
-
-                                    await queryClient.invalidateQueries({
-                                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
-                                    });
-
-                                    toast({
-                                      title: "Đã giảm số lượng",
-                                      description: `Đã giảm "${item.productName}" xuống ${newQuantity}`,
-                                    });
-                                  } catch (error) {
-                                    toast({
-                                      title: "Lỗi",
-                                      description: "Không thể giảm số lượng",
-                                      variant: "destructive",
-                                    });
                                   }
+
+                                  await queryClient.invalidateQueries({
+                                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                  });
+
+                                  toast({
+                                    title: "Đã xóa món",
+                                    description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
+                                  });
+                                } catch (error) {
+                                  toast({
+                                    title: "Lỗi",
+                                    description: "Không thể xóa món",
+                                    variant: "destructive",
+                                  });
                                 }
                               } else {
-                                // Item already sent to kitchen - show confirmation dialog
-                                console.log(
-                                  "⚠️ Item sent to kitchen, showing confirmation dialog",
-                                );
-                                setItemToDecreaseWithNote(item);
-                                setShowDecreaseNoteDialog(true);
-                                setDecreaseNote("");
-                                setDecreaseQuantity(1);
+                                // Decrease quantity by 1
+                                try {
+                                  const unitPrice = parseFloat(item.unitPrice);
+                                  const discount = parseFloat(item.discount || "0");
+                                  const itemSubtotal = unitPrice * newQuantity;
+                                  const newTotal = (itemSubtotal - discount).toFixed(2);
+
+                                  await apiRequest(
+                                    "PUT",
+                                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                    {
+                                      quantity: newQuantity,
+                                      total: newTotal,
+                                    },
+                                  );
+
+                                  // Save order change history
+                                  if (activeOrder) {
+                                    const userName = "Mobile User";
+                                    const ipAddress = "mobile";
+                                    const detailedDescription = `Giảm số lượng: ${item.productName} (SL: ${currentQuantity} → ${newQuantity}, Giảm: 1, Giá: ${Math.floor(parseFloat(item.unitPrice)).toLocaleString("vi-VN")} ₫)`;
+
+                                    await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                                      orderId: activeOrder.id,
+                                      orderNumber: activeOrder.orderNumber,
+                                      action: "decrease_quantity",
+                                      detailedDescription,
+                                      userName,
+                                      ipAddress,
+                                    });
+                                  }
+
+                                  await refetchOrderItems();
+
+                                  // Recalculate order totals
+                                  if (activeOrder) {
+                                    await apiRequest(
+                                      "POST",
+                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                      {},
+                                    );
+                                  }
+
+                                  await queryClient.invalidateQueries({
+                                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                  });
+
+                                  toast({
+                                    title: "Đã giảm số lượng",
+                                    description: `Đã giảm "${item.productName}" xuống ${newQuantity}`,
+                                  });
+                                } catch (error) {
+                                  toast({
+                                    title: "Lỗi",
+                                    description: "Không thể giảm số lượng",
+                                    variant: "destructive",
+                                  });
+                                }
                               }
                             }}
                             className="h-8 px-3"
@@ -1450,6 +1457,493 @@ export function MobileTableView({
             </Button>
           )}
         </div>
+        {/* Cancel Order Dialog */}
+        <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận hủy đơn hàng</AlertDialogTitle>
+              <AlertDialogDescription>
+                Vui lòng nhập lý do hủy đơn hàng
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <Textarea
+                placeholder="Nhập lý do hủy đơn..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setCancelReason("");
+                }}
+              >
+                Hủy
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (!cancelReason.trim()) {
+                    toast({
+                      title: "Lỗi",
+                      description: "Vui lòng nhập lý do hủy đơn",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  // Clear cart and reset
+                  setTempCart([]);
+                  setOrderDiscount(0);
+                  setOrderDiscountType("vnd");
+                  setDiscountSource(null);
+                  setShowCancelDialog(false);
+                  setCancelReason("");
+
+                  toast({
+                    title: "Đã hủy",
+                    description: `Lý do: ${cancelReason}`,
+                  });
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Xác nhận hủy
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Item Dialog */}
+        <AlertDialog
+          open={showDeleteItemDialog}
+          onOpenChange={setShowDeleteItemDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+              <AlertDialogDescription>
+                Món này đã được gửi vào bếp. Vui lòng nhập ghi chú để xác nhận
+                xóa.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <div className="mb-3">
+                <p className="text-sm font-medium">
+                  Món: {itemToDelete?.productName}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Số lượng: {parseFloat(itemToDelete?.quantity || "1")}
+                </p>
+              </div>
+              <Textarea
+                placeholder="Nhập lý do xóa món (bắt buộc)..."
+                value={deleteItemNote}
+                onChange={(e) => setDeleteItemNote(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setDeleteItemNote("");
+                  setItemToDelete(null);
+                }}
+              >
+                Hủy
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  if (!deleteItemNote.trim()) {
+                    toast({
+                      title: "Lỗi",
+                      description: "Vui lòng nhập ghi chú xóa món",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  if (!itemToDelete) return;
+
+                  try {
+                    await apiRequest(
+                      "DELETE",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDelete.id}`,
+                    );
+                    // Recalculate order totals if there's an active order
+                    if (activeOrder) {
+                      await apiRequest(
+                        "POST",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                        {},
+                      );
+                    }
+
+                    await refetchOrderItems();
+
+                    // Invalidate orders cache
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    });
+
+                    setShowDeleteItemDialog(false);
+                    setDeleteItemNote("");
+                    setItemToDelete(null);
+                  } catch (error) {
+                    toast({
+                      title: "Lỗi",
+                      description: "Không thể xóa món",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Xác nhận xóa
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Decrease Quantity with Note Dialog */}
+        <AlertDialog
+          open={showDecreaseNoteDialog}
+          onOpenChange={setShowDecreaseNoteDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Giảm số lượng món</AlertDialogTitle>
+              <AlertDialogDescription>
+                Bạn có thể giảm số lượng trực tiếp hoặc tách món với ghi chú riêng
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4">
+              <div className="mb-3">
+                <p className="text-sm font-medium">
+                  Món: {itemToDecreaseWithNote?.productName}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Số lượng hiện tại:{" "}
+                  {parseFloat(itemToDecreaseWithNote?.quantity || "0")}
+                </p>
+              </div>
+              <div className="mb-4">
+                <label className="text-sm font-medium mb-2 block">
+                  Số lượng muốn giảm:
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={
+                    itemToDecreaseWithNote
+                      ? parseFloat(itemToDecreaseWithNote.quantity)
+                      : 1
+                  }
+                  value={decreaseQuantity}
+                  onChange={(e) => {
+                    const max = itemToDecreaseWithNote
+                      ? parseFloat(itemToDecreaseWithNote.quantity)
+                      : 1;
+                    const value = Math.max(
+                      1,
+                      Math.min(max, parseInt(e.target.value) || 1),
+                    );
+                    setDecreaseQuantity(value);
+                  }}
+                  className="w-full"
+                />
+              </div>
+              <Textarea
+                placeholder="Nhập ghi chú (tùy chọn - nếu có ghi chú sẽ tách món riêng)..."
+                value={decreaseNote}
+                onChange={(e) => setDecreaseNote(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setDecreaseNote("");
+                  setItemToDecreaseWithNote(null);
+                  setDecreaseQuantity(1);
+                }}
+              >
+                Hủy
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  if (!itemToDecreaseWithNote || !activeOrder) return;
+
+                  const currentQuantity = parseFloat(
+                    itemToDecreaseWithNote.quantity,
+                  );
+                  const quantityToDecrease = Math.min(
+                    decreaseQuantity,
+                    currentQuantity,
+                  );
+
+                  if (
+                    quantityToDecrease <= 0 ||
+                    quantityToDecrease > currentQuantity
+                  ) {
+                    toast({
+                      title: "Lỗi",
+                      description: "Số lượng không hợp lệ",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  try {
+                    const unitPrice = parseFloat(
+                      itemToDecreaseWithNote.unitPrice,
+                    );
+                    const newQuantity = currentQuantity - quantityToDecrease;
+
+                    if (decreaseNote.trim()) {
+                      // Case 1: Có ghi chú - tách món riêng
+                      // Update current item quantity
+                      if (newQuantity > 0) {
+                        const newTotal = (unitPrice * newQuantity).toFixed(2);
+                        await apiRequest(
+                          "PUT",
+                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                          {
+                            quantity: newQuantity,
+                            total: newTotal,
+                          },
+                        );
+                      } else {
+                        // Delete item if quantity becomes 0
+                        await apiRequest(
+                          "DELETE",
+                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        );
+                      }
+
+                      // Create new item with note
+                      const newItemTotal = (
+                        unitPrice * quantityToDecrease
+                      ).toFixed(2);
+                      await apiRequest(
+                        "POST",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items`,
+                        {
+                          items: [
+                            {
+                              productId: itemToDecreaseWithNote.productId,
+                              quantity: quantityToDecrease,
+                              unitPrice: itemToDecreaseWithNote.unitPrice,
+                              discount: "0.00", // Ensure discount is 0 for new item
+                              total: newItemTotal,
+                              notes: decreaseNote.trim(),
+                            },
+                          ],
+                        },
+                      );
+
+                      // Save order change history for split with note
+                      const userName = "Mobile User";
+                      const ipAddress = "mobile";
+                      const detailedDescription = `Tách món: ${itemToDecreaseWithNote.productName} (SL gốc: ${currentQuantity}, Giảm: ${quantityToDecrease}, Còn lại: ${newQuantity}, Giá: ${Math.floor(parseFloat(itemToDecreaseWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Ghi chú: ${decreaseNote}`;
+
+                      await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                        orderId: activeOrder.id,
+                        orderNumber: activeOrder.orderNumber,
+                        action: "decrease_quantity",
+                        detailedDescription,
+                        userName,
+                        ipAddress,
+                      });
+                    } else {
+                      // Case 2: Không có ghi chú - chỉ giảm số lượng
+                      if (newQuantity > 0) {
+                        const newTotal = (unitPrice * newQuantity).toFixed(2);
+                        await apiRequest(
+                          "PUT",
+                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                          {
+                            quantity: newQuantity,
+                            total: newTotal,
+                          },
+                        );
+                      } else {
+                        // Delete item if quantity becomes 0
+                        await apiRequest(
+                          "DELETE",
+                          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        );
+                      }
+
+                      // Save order change history for simple decrease
+                      const userName = "Mobile User";
+                      const ipAddress = "mobile";
+                      const detailedDescription = `Giảm số lượng: ${itemToDecreaseWithNote.productName} (SL: ${currentQuantity} → ${newQuantity}, Giảm: ${quantityToDecrease}, Giá: ${Math.floor(parseFloat(itemToDecreaseWithNote.unitPrice)).toLocaleString("vi-VN")} ₫)`;
+
+                      await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                        orderId: activeOrder.id,
+                        orderNumber: activeOrder.orderNumber,
+                        action: "decrease_quantity",
+                        detailedDescription,
+                        userName,
+                        ipAddress,
+                      });
+                    }
+
+                    // Recalculate order totals
+                    await apiRequest(
+                      "POST",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                      {},
+                    );
+
+                    await refetchOrderItems();
+
+                    // Invalidate orders cache
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    });
+
+                    setShowDecreaseNoteDialog(false);
+                    setDecreaseNote("");
+                    setItemToDecreaseWithNote(null);
+                    setDecreaseQuantity(1);
+                  } catch (error) {
+                    console.error("Error decreasing quantity:", error);
+                    toast({
+                      title: "Lỗi",
+                      description: "Không thể giảm số lượng",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Xác nhận
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Confirmation Dialog with Notes - Always rendered */}
+        <AlertDialog
+          open={showDeleteConfirmDialog}
+          onOpenChange={setShowDeleteConfirmDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+              <AlertDialogDescription>
+                Bạn có chắc chắn muốn xóa "{itemToDeleteWithNote?.productName}"
+                khỏi đơn hàng?
+                {itemToDeleteWithNote?.status && (
+                  <span className="block mt-2 text-orange-600 font-medium">
+                    ⚠️ Món này đã được gửi bếp
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="my-4">
+              <label className="text-sm font-medium mb-2 block">
+                Lý do xóa món:
+              </label>
+              <Textarea
+                value={deleteNote}
+                onChange={(e) => setDeleteNote(e.target.value)}
+                placeholder="Nhập lý do xóa món (bắt buộc)"
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setDeleteNote("");
+                  setItemToDeleteWithNote(null);
+                }}
+              >
+                Hủy
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  if (!deleteNote.trim()) {
+                    toast({
+                      title: "Thiếu thông tin",
+                      description: "Vui lòng nhập lý do xóa món",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  if (!itemToDeleteWithNote) return;
+
+                  try {
+                    // Save order change history before deleting
+                    if (activeOrder) {
+                      const userName = "Mobile User";
+                      const ipAddress = "mobile";
+
+                      const detailedDescription = `Xóa món: ${itemToDeleteWithNote.productName} (SL: ${parseFloat(itemToDeleteWithNote.quantity || "1")}, Giá: ${Math.floor(parseFloat(itemToDeleteWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Lý do: ${deleteNote}`;
+
+                      await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                        orderId: activeOrder.id,
+                        orderNumber: activeOrder.orderNumber,
+                        action: "delete_item",
+                        detailedDescription,
+                        userName,
+                        ipAddress,
+                      });
+                    }
+
+                    // Delete the item
+                    await apiRequest(
+                      "DELETE",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                    );
+
+                    // Recalculate order totals
+                    if (activeOrder) {
+                      await apiRequest(
+                        "POST",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                        {},
+                      );
+                    }
+
+                    // Refetch order items
+                    await refetchOrderItems();
+
+                    // Invalidate orders cache
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                    });
+
+                    toast({
+                      title: "Đã xóa món",
+                      description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
+                    });
+
+                    // Close dialog
+                    setShowDeleteConfirmDialog(false);
+                    setDeleteNote("");
+                    setItemToDeleteWithNote(null);
+                  } catch (error) {
+                    console.error("❌ Error deleting item:", error);
+                    toast({
+                      title: "Lỗi",
+                      description: "Không thể xóa món",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Xóa món
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
@@ -1734,50 +2228,64 @@ export function MobileTableView({
                         <span className="text-gray-600">Giảm giá SP:</span>
                         <Input
                           type="text"
+                          inputMode="numeric"
                           value={
-                            item.discountVnd && item.discountVnd > 0
-                              ? Math.floor(item.discountVnd).toLocaleString(
-                                  "vi-VN",
-                                )
-                              : ""
+                            item.discountType === "percent"
+                              ? item.discount && item.discount > 0
+                                ? item.discount.toString()
+                                : ""
+                              : item.discountVnd && item.discountVnd > 0
+                                ? Math.floor(item.discountVnd).toLocaleString(
+                                    "vi-VN",
+                                  )
+                                : ""
                           }
                           onChange={(e) => {
+                            // Remove all non-digit characters for parsing
                             const inputValue = e.target.value.replace(
-                              /[^\d]/g,
+                              /\D/g,
                               "",
                             );
-                            const value = Math.max(
-                              0,
-                              parseFloat(inputValue) || 0,
-                            );
+                            const value = inputValue
+                              ? parseInt(inputValue, 10)
+                              : 0;
+
                             const basePrice = parseFloat(item.product.price);
                             const quantity = item.quantity;
                             const itemTotal = basePrice * quantity;
 
-                            let discountVnd = value;
+                            let discountVnd = 0;
+                            let discountPercent = 0;
 
-                            // Validate doesn't exceed item total
-                            if (value > itemTotal) {
-                              discountVnd = 0;
-                              toast({
-                                title: "Lỗi giảm giá",
-                                description:
-                                  "Giảm giá không được vượt quá giá sản phẩm",
-                                variant: "destructive",
-                              });
+                            if (item.discountType === "percent") {
+                              // Validate percentage doesn't exceed 100
+                              discountPercent = Math.min(100, value);
+                              discountVnd = Math.round(
+                                (itemTotal * discountPercent) / 100,
+                              );
+                            } else {
+                              // VND discount
+                              discountVnd = value;
+                              // Validate doesn't exceed item total
+                              if (value > itemTotal) {
+                                discountVnd = 0;
+                                toast({
+                                  title: "Lỗi giảm giá",
+                                  description:
+                                    "Giảm giá không được vượt quá giá sản phẩm",
+                                  variant: "destructive",
+                                });
+                              }
                             }
 
-                            // Update cart with VND value
+                            // Update cart
                             const updatedCart = tempCart.map((cartItem) =>
                               cartItem.productId === item.productId
                                 ? {
                                     ...cartItem,
-                                    discount: 0,
-                                    discountVnd: discountVnd, // Store VND for calculation
-                                    discountType: "vnd" as
-                                      | "percent"
-                                      | "amount"
-                                      | "vnd",
+                                    discount: discountPercent,
+                                    discountVnd: discountVnd,
+                                    discountType: item.discountType || "vnd",
                                   }
                                 : cartItem,
                             );
@@ -1798,7 +2306,61 @@ export function MobileTableView({
                           placeholder="0"
                           className="flex-1 h-8 text-right"
                         />
-                        <span className="text-xs">₫</span>
+                        <Select
+                          value={item.discountType || "vnd"}
+                          onValueChange={(
+                            value: "percent" | "amount" | "vnd",
+                          ) => {
+                            const updatedCart = tempCart.map((cartItem) => {
+                              if (cartItem.productId === item.productId) {
+                                const basePrice = parseFloat(
+                                  item.product.price,
+                                );
+                                const quantity = item.quantity;
+                                const itemTotal = basePrice * quantity;
+
+                                if (value === "percent") {
+                                  // Convert VND to percent
+                                  const currentDiscountVnd =
+                                    cartItem.discountVnd || 0;
+                                  const discountPercent =
+                                    itemTotal > 0
+                                      ? (currentDiscountVnd / itemTotal) * 100
+                                      : 0;
+                                  return {
+                                    ...cartItem,
+                                    discount: discountPercent,
+                                    discountVnd: currentDiscountVnd,
+                                    discountType: "percent",
+                                  };
+                                } else {
+                                  // Convert percent to VND
+                                  const currentDiscountPercent =
+                                    cartItem.discount || 0;
+                                  const discountVnd = Math.round(
+                                    (itemTotal * currentDiscountPercent) / 100,
+                                  );
+                                  return {
+                                    ...cartItem,
+                                    discount: 0,
+                                    discountVnd: discountVnd,
+                                    discountType: "vnd",
+                                  };
+                                }
+                              }
+                              return cartItem;
+                            });
+                            setTempCart(updatedCart);
+                          }}
+                        >
+                          <SelectTrigger className="w-16 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vnd">₫</SelectItem>
+                            <SelectItem value="percent">%</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Display allocated order discount only if discount source is order-level and item has no manual discount */}
@@ -1857,16 +2419,16 @@ export function MobileTableView({
                   </span>
                   <Input
                     type="text"
+                    inputMode="numeric"
                     value={
                       orderDiscount > 0
                         ? Math.floor(orderDiscount).toLocaleString("vi-VN")
                         : ""
                     }
                     onChange={(e) => {
-                      const value = Math.max(
-                        0,
-                        parseFloat(e.target.value.replace(/[^\d]/g, "")) || 0,
-                      );
+                      // Remove all non-digit characters for parsing
+                      const inputValue = e.target.value.replace(/\D/g, "");
+                      const value = inputValue ? parseInt(inputValue, 10) : 0;
                       setOrderDiscount(value);
 
                       // Mark discount source as order-level
@@ -2287,7 +2849,7 @@ export function MobileTableView({
                 Món: {itemToDelete?.productName}
               </p>
               <p className="text-sm text-gray-500">
-                Số lượng: {itemToDelete?.quantity}
+                Số lượng: {parseFloat(itemToDelete?.quantity || "1")}
               </p>
             </div>
             <Textarea
@@ -2324,8 +2886,6 @@ export function MobileTableView({
                     "DELETE",
                     `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDelete.id}`,
                   );
-                  await refetchOrderItems();
-
                   // Recalculate order totals if there's an active order
                   if (activeOrder) {
                     await apiRequest(
@@ -2334,6 +2894,8 @@ export function MobileTableView({
                       {},
                     );
                   }
+
+                  await refetchOrderItems();
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
@@ -2343,143 +2905,7 @@ export function MobileTableView({
                   setShowDeleteItemDialog(false);
                   setDeleteItemNote("");
                   setItemToDelete(null);
-
-                  toast({
-                    title: "Đã xóa",
-                    description: `Đã xóa "${itemToDelete.productName}" - Ghi chú: ${deleteItemNote}`,
-                  });
                 } catch (error) {
-                  toast({
-                    title: "Lỗi",
-                    description: "Không thể xóa món",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Xác nhận xóa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Confirmation Dialog with Notes */}
-      <AlertDialog
-        open={showDeleteConfirmDialog}
-        onOpenChange={(open) => {
-          console.log("🔧 Delete Dialog onOpenChange:", open);
-          setShowDeleteConfirmDialog(open);
-          if (!open) {
-            setDeleteNote("");
-            setItemToDeleteWithNote(null);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
-            <AlertDialogDescription>
-              Vui lòng nhập ghi chú để xác nhận xóa món khỏi đơn hàng
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <div className="mb-3">
-              <p className="text-sm font-medium">
-                Món: {itemToDeleteWithNote?.productName}
-              </p>
-              <p className="text-sm text-gray-500">
-                Số lượng: {itemToDeleteWithNote?.quantity}
-              </p>
-              {itemToDeleteWithNote?.status && (
-                <p className="text-sm text-orange-600 mt-1">
-                  Trạng thái:{" "}
-                  {itemToDeleteWithNote.status === "pending"
-                    ? "Chờ chế biến"
-                    : itemToDeleteWithNote.status === "progress"
-                      ? "Đang chế biến"
-                      : itemToDeleteWithNote.status === "completed"
-                        ? "Hoàn thành"
-                        : itemToDeleteWithNote.status}
-                </p>
-              )}
-            </div>
-            <Textarea
-              placeholder="Nhập ghi chú (không bắt buộc)..."
-              value={deleteNote}
-              onChange={(e) => setDeleteNote(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setShowDeleteConfirmDialog(false);
-                setDeleteNote("");
-                setItemToDeleteWithNote(null);
-              }}
-            >
-              Hủy
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (!itemToDeleteWithNote) return;
-
-                try {
-                  // Update item with notes before deleting if there's a note
-                  if (deleteNote.trim()) {
-                    console.log(
-                      `📝 Saving note to order item ${itemToDeleteWithNote.id}:`,
-                      deleteNote.trim(),
-                    );
-                    await apiRequest(
-                      "PATCH",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
-                      {
-                        notes: deleteNote.trim(),
-                      },
-                    );
-
-                    // Wait a bit to ensure the update is processed
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                  }
-
-                  // Delete the item
-                  console.log(
-                    `🗑️ Deleting order item ${itemToDeleteWithNote.id}`,
-                  );
-                  await apiRequest(
-                    "DELETE",
-                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
-                  );
-                  await refetchOrderItems();
-
-                  // Recalculate order totals if there's an active order
-                  if (activeOrder) {
-                    await apiRequest(
-                      "POST",
-                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                      {},
-                    );
-                  }
-
-                  // Invalidate orders cache
-                  await queryClient.invalidateQueries({
-                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
-                  });
-
-                  setShowDeleteConfirmDialog(false);
-                  setDeleteNote("");
-                  setItemToDeleteWithNote(null);
-
-                  toast({
-                    title: "Đã xóa món",
-                    description: deleteNote.trim()
-                      ? `Đã xóa "${itemToDeleteWithNote.productName}"\nGhi chú: ${deleteNote.trim()}`
-                      : `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
-                  });
-                } catch (error) {
-                  console.error("❌ Error deleting item:", error);
                   toast({
                     title: "Lỗi",
                     description: "Không thể xóa món",
@@ -2513,7 +2939,8 @@ export function MobileTableView({
                 Món: {itemToDecreaseWithNote?.productName}
               </p>
               <p className="text-sm text-gray-500">
-                Số lượng hiện tại: {itemToDecreaseWithNote?.quantity}
+                Số lượng hiện tại:{" "}
+                {parseFloat(itemToDecreaseWithNote?.quantity || "0")}
               </p>
             </div>
             <div className="mb-4">
@@ -2630,11 +3057,6 @@ export function MobileTableView({
                         ],
                       },
                     );
-
-                    toast({
-                      title: "Thành công",
-                      description: `Đã tách ${quantityToDecrease} "${itemToDecreaseWithNote.productName}" với ghi chú: ${decreaseNote}`,
-                    });
                   } else {
                     // Case 2: Không có ghi chú - chỉ giảm số lượng
                     if (newQuantity > 0) {
@@ -2647,24 +3069,14 @@ export function MobileTableView({
                           total: newTotal,
                         },
                       );
-                      toast({
-                        title: "Thành công",
-                        description: `Đã giảm số lượng "${itemToDecreaseWithNote.productName}" xuống ${newQuantity}`,
-                      });
                     } else {
                       // Delete item if quantity becomes 0
                       await apiRequest(
                         "DELETE",
                         `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                       );
-                      toast({
-                        title: "Thành công",
-                        description: `Đã xóa "${itemToDecreaseWithNote.productName}" khỏi đơn hàng`,
-                      });
                     }
                   }
-
-                  await refetchOrderItems();
 
                   // Recalculate order totals
                   await apiRequest(
@@ -2672,6 +3084,8 @@ export function MobileTableView({
                     `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                     {},
                   );
+
+                  await refetchOrderItems();
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
@@ -2694,6 +3108,126 @@ export function MobileTableView({
               className="bg-blue-600 hover:bg-blue-700"
             >
               Xác nhận
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog with Notes - Always rendered */}
+      <AlertDialog
+        open={showDeleteConfirmDialog}
+        onOpenChange={setShowDeleteConfirmDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa "{itemToDeleteWithNote?.productName}"
+              khỏi đơn hàng?
+              {itemToDeleteWithNote?.status && (
+                <span className="block mt-2 text-orange-600 font-medium">
+                  ⚠️ Món này đã được gửi bếp
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="my-4">
+            <label className="text-sm font-medium mb-2 block">
+              Lý do xóa món:
+            </label>
+            <Textarea
+              value={deleteNote}
+              onChange={(e) => setDeleteNote(e.target.value)}
+              placeholder="Nhập lý do xóa món (bắt buộc)"
+              className="min-h-[80px]"
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteNote("");
+                setItemToDeleteWithNote(null);
+              }}
+            >
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!deleteNote.trim()) {
+                  toast({
+                    title: "Thiếu thông tin",
+                    description: "Vui lòng nhập lý do xóa món",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                if (!itemToDeleteWithNote) return;
+
+                try {
+                  // Save order change history before deleting
+                  if (activeOrder) {
+                    const userName = "Mobile User";
+                    const ipAddress = "mobile";
+
+                    const detailedDescription = `Xóa món: ${itemToDeleteWithNote.productName} (SL: ${parseFloat(itemToDeleteWithNote.quantity || "1")}, Giá: ${Math.floor(parseFloat(itemToDeleteWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Lý do: ${deleteNote}`;
+
+                    await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-change-history", {
+                      orderId: activeOrder.id,
+                      orderNumber: activeOrder.orderNumber,
+                      action: "delete_item",
+                      detailedDescription,
+                      userName,
+                      ipAddress,
+                    });
+                  }
+
+                  // Delete the item
+                  await apiRequest(
+                    "DELETE",
+                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                  );
+
+                  // Recalculate order totals
+                  if (activeOrder) {
+                    await apiRequest(
+                      "POST",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                      {},
+                    );
+                  }
+
+                  // Refetch order items
+                  await refetchOrderItems();
+
+                  // Invalidate orders cache
+                  await queryClient.invalidateQueries({
+                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                  });
+
+                  toast({
+                    title: "Đã xóa món",
+                    description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
+                  });
+
+                  // Close dialog
+                  setShowDeleteConfirmDialog(false);
+                  setDeleteNote("");
+                  setItemToDeleteWithNote(null);
+                } catch (error) {
+                  console.error("❌ Error deleting item:", error);
+                  toast({
+                    title: "Lỗi",
+                    description: "Không thể xóa món",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Xóa món
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
