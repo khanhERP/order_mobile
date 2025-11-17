@@ -98,12 +98,12 @@ export function ProductManagerModal({
     isLoading,
     refetch,
   } = useQuery<Product[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/products"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"],
     enabled: isOpen,
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/categories"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/categories"],
     enabled: isOpen,
   });
 
@@ -123,7 +123,7 @@ export function ProductManagerModal({
       }
       
       console.log("Sending product data:", finalData);
-      const response = await fetch("https://order-mobile-be.onrender.com/api/products", {
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
@@ -137,8 +137,8 @@ export function ProductManagerModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/active"] });
       setShowAddForm(false);
       resetForm();
       // 파일 상태 초기화
@@ -190,7 +190,7 @@ export function ProductManagerModal({
         }
       }
       
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/products/${id}`, {
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
@@ -199,8 +199,8 @@ export function ProductManagerModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/active"] });
       setEditingProduct(null);
       // 파일 상태 초기화
       setSelectedImageFile(null);
@@ -221,15 +221,15 @@ export function ProductManagerModal({
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/products/${id}`, {
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete product");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/active"] });
       toast({
         title: "Success",
         description: "Product deleted successfully",

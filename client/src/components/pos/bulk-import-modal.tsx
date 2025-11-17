@@ -45,7 +45,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
   const bulkCreateMutation = useMutation({
     mutationFn: async (products: ProductRow[]) => {
-      const response = await fetch("https://order-mobile-be.onrender.com/api/products/bulk", {
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ products }),
@@ -63,7 +63,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       console.log("Error count:", data.errors);
       console.log("Results array:", data.results);
 
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"] });
 
       if (data.errors > 0) {
         console.log("=== ERRORS FOUND ===");

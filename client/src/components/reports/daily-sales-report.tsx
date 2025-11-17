@@ -60,9 +60,9 @@ export function DailySalesReport({ onBack }: DailySalesReportProps) {
 
   // Fetch store settings
   const { data: storeSettings } = useQuery<StoreSettings>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/store-settings"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("https://order-mobile-be.onrender.com/api/store-settings");
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings");
       if (!response.ok) {
         throw new Error("Failed to fetch store settings");
       }
@@ -75,7 +75,7 @@ export function DailySalesReport({ onBack }: DailySalesReportProps) {
     queryKey: ["daily-sales-orders", dateRange.start, dateRange.end],
     queryFn: async () => {
       const response = await fetch(
-        `https://order-mobile-be.onrender.com/api/orders/date-range/${dateRange.start}/${dateRange.end}`,
+        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/date-range/${dateRange.start}/${dateRange.end}`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch orders");
@@ -105,7 +105,7 @@ export function DailySalesReport({ onBack }: DailySalesReportProps) {
     queryKey: ["order-items", selectedOrder?.id],
     queryFn: async () => {
       if (!selectedOrder?.id) return [];
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/order-items/${selectedOrder.id}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${selectedOrder.id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch order items");
       }

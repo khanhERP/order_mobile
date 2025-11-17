@@ -71,7 +71,7 @@ export function usePOS() {
         notes: null,
       }));
 
-      const response = await fetch("https://order-mobile-be.onrender.com/api/orders", {
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order: orderData, items }),
@@ -109,8 +109,8 @@ export function usePOS() {
 
       setLastReceipt(receipt);
       updateActiveOrderCart([]);
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] });
 
       // Dispatch events for real-time updates
       if (typeof window !== 'undefined') {
@@ -187,7 +187,7 @@ export function usePOS() {
 
     try {
       // Fetch product details
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/products/${productId}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products/${productId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch product');
       }

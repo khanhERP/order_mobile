@@ -57,13 +57,13 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
 
   // Fetch customers
   const { data: customers, isLoading: customersLoading } = useQuery<Customer[]>({
-    queryKey: ['https://order-mobile-be.onrender.com/api/customers'],
+    queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'],
     enabled: isOpen,
   });
 
   // Fetch point transactions history
   const { data: pointTransactions, isLoading: transactionsLoading } = useQuery<PointTransaction[]>({
-    queryKey: ['https://order-mobile-be.onrender.com/api/point-transactions'],
+    queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/point-transactions'],
     enabled: isOpen && activeTab === 'history',
   });
 
@@ -75,7 +75,7 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
       type: string; 
       description: string 
     }) => {
-      const response = await apiRequest('POST', 'https://order-mobile-be.onrender.com/api/customers/adjust-points', {
+      const response = await apiRequest('POST', 'https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/adjust-points', {
         customerId,
         points,
         type,
@@ -84,8 +84,8 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://order-mobile-be.onrender.com/api/customers'] });
-      queryClient.invalidateQueries({ queryKey: ['https://order-mobile-be.onrender.com/api/point-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/point-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['customer-points', selectedCustomer?.id] });
       toast({
         title: t("customers.customerUpdated"),
@@ -107,15 +107,15 @@ export function PointsManagementModal({ isOpen, onClose }: PointsManagementModal
   // Point payment mutation
   const processPaymentMutation = useMutation({
     mutationFn: async ({ customerId, points }: { customerId: number; points: number }) => {
-      const response = await apiRequest('POST', 'https://order-mobile-be.onrender.com/api/customers/redeem-points', {
+      const response = await apiRequest('POST', 'https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/redeem-points', {
         customerId,
         points
       });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://order-mobile-be.onrender.com/api/customers'] });
-      queryClient.invalidateQueries({ queryKey: ['https://order-mobile-be.onrender.com/api/point-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/point-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['customer-points', selectedCustomer?.id] });
       toast({
         title: t("common.success"),

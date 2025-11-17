@@ -40,9 +40,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogOverlay,
+  AlertDialogPortal,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertDialogPortal } from "@radix-ui/react-alert-dialog";
 
 interface MobileTableViewProps {
   tableId: number;
@@ -73,6 +74,7 @@ export function MobileTableView({
       quantity: number;
       product: Product;
       discount?: number;
+      discountVnd?: number; // Added to store VND discount value
       discountType?: "percent" | "amount" | "vnd";
     }[]
   >([]);
@@ -93,7 +95,8 @@ export function MobileTableView({
   const [itemToDeleteWithNote, setItemToDeleteWithNote] = useState<any>(null);
   const [deleteNote, setDeleteNote] = useState("");
   const [showDecreaseNoteDialog, setShowDecreaseNoteDialog] = useState(false);
-  const [itemToDecreaseWithNote, setItemToDecreaseWithNote] = useState<any>(null);
+  const [itemToDecreaseWithNote, setItemToDecreaseWithNote] =
+    useState<any>(null);
   const [decreaseNote, setDecreaseNote] = useState("");
   const [decreaseQuantity, setDecreaseQuantity] = useState(1);
 
@@ -103,7 +106,7 @@ export function MobileTableView({
       showDeleteConfirmDialog,
       hasItem: !!itemToDeleteWithNote,
       itemName: itemToDeleteWithNote?.productName,
-      deleteNote
+      deleteNote,
     });
 
     if (showDeleteConfirmDialog) {
@@ -113,9 +116,9 @@ export function MobileTableView({
 
   // Fetch table data
   const { data: table } = useQuery<Table>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/tables", tableId],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables", tableId],
     queryFn: async () => {
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/tables/${tableId}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables/${tableId}`);
       if (!response.ok) throw new Error("Failed to fetch table");
       return response.json();
     },
@@ -123,9 +126,9 @@ export function MobileTableView({
 
   // Fetch all orders
   const { data: orders } = useQuery<Order[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
     queryFn: async () => {
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/orders?${tableId}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders?${tableId}`);
       if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
       return data.filter(
@@ -144,12 +147,12 @@ export function MobileTableView({
   const { data: orderItems, refetch: refetchOrderItems } = useQuery<
     OrderItem[]
   >({
-    queryKey: ["https://order-mobile-be.onrender.com/api/order-items", activeOrder?.id],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder?.id],
     enabled: !!activeOrder?.id,
     queryFn: async () => {
       if (!activeOrder?.id) return [];
       console.log("📦 Fetching order items for order:", activeOrder.id);
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/order-items/${activeOrder.id}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${activeOrder.id}`);
       if (!response.ok) {
         console.error("❌ Failed to fetch order items:", response.status);
         throw new Error("Failed to fetch order items");
@@ -165,9 +168,9 @@ export function MobileTableView({
 
   // Fetch products for the product list
   const { data: products } = useQuery<Product[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/products"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"],
     queryFn: async () => {
-      const response = await fetch("https://order-mobile-be.onrender.com/api/products");
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products");
       if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
       return data.filter(
@@ -178,7 +181,7 @@ export function MobileTableView({
 
   // Fetch categories
   const { data: categories } = useQuery({
-    queryKey: ["https://order-mobile-be.onrender.com/api/categories"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/categories"],
   });
 
   // Determine if table is occupied - prioritize table.status but also check active order
@@ -220,6 +223,34 @@ export function MobileTableView({
       console.log("⚠️ No active order found for table");
     }
   }, [activeOrder?.id, isOccupied, refetchOrderItems]);
+
+  // Track if we've already loaded existing items to avoid duplicate loading
+  const [hasLoadedExistingItems, setHasLoadedExistingItems] = useState(false);
+
+  // DISABLED: Do not load existing order items into tempCart
+  // This prevents merging/adding quantities when user clicks "Add items"
+  // Instead, user starts with empty cart and manually adds items they want
+  // When confirmed, it will REPLACE all existing items with new cart items
+  useEffect(() => {
+    // Intentionally disabled - do not auto-load existing items
+    console.log(
+      "ℹ️ Auto-load existing items is DISABLED - user starts with empty cart",
+    );
+  }, [
+    viewMode,
+    activeOrder,
+    orderItems,
+    products,
+    tempCart.length,
+    hasLoadedExistingItems,
+  ]);
+
+  // Reset the hasLoadedExistingItems flag when switching back to order view
+  useEffect(() => {
+    if (viewMode === "order") {
+      setHasLoadedExistingItems(false);
+    }
+  }, [viewMode]);
 
   // Log order items when they change
   useEffect(() => {
@@ -293,7 +324,7 @@ export function MobileTableView({
       });
 
       const sumOfDiscount = tempCart.reduce((sum, item) => {
-        return sum + (item.discount || 0);
+        return sum + (item.discountVnd || 0);
       }, 0);
 
       if (!activeOrder) {
@@ -322,9 +353,11 @@ export function MobileTableView({
         };
 
         const items = tempCart.map((item) => {
-          // Calculate item discount in VND
+          // Use pre-calculated VND discount if available, otherwise calculate from %
           let itemDiscountVnd = 0;
-          if (item.discount && item.discount > 0) {
+          if (item.discountVnd !== undefined && item.discountVnd > 0) {
+            itemDiscountVnd = item.discountVnd;
+          } else if (item.discount && item.discount > 0) {
             if (item.discountType === "percent") {
               const itemSubtotal =
                 parseFloat(item.product.price) * item.quantity;
@@ -343,116 +376,318 @@ export function MobileTableView({
             productId: item.productId,
             quantity: item.quantity.toString(),
             unitPrice: item.product.price,
-            discount: itemDiscountVnd.toFixed(2),
+            discount: itemDiscountVnd.toFixed(2), // ALWAYS save VND value
             total: itemTotal.toFixed(2),
             tax: (itemSubtotal * (item.product.taxRate || 0)).toFixed(2),
           };
         });
 
         console.log("📝 Creating new order", { orderData, items });
-        return apiRequest("POST", "https://order-mobile-be.onrender.com/api/orders", { order: orderData, items });
+        return apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", { order: orderData, items });
       } else {
         console.log("➕ Adding items to existing order", activeOrder.id);
 
-        // Use the new endpoint to add items to existing order
-        const items = tempCart.map((item) => {
-          // Calculate item discount in VND
-          let itemDiscountVnd = 0;
-          if (item.discount && item.discount > 0) {
-            if (item.discountType === "percent") {
-              const itemSubtotal =
-                parseFloat(item.product.price) * item.quantity;
-              itemDiscountVnd = Math.round(
-                (itemSubtotal * item.discount) / 100,
-              );
+        // Separate items into two categories:
+        // 1. Items to UPDATE (already exist in order - will merge quantities)
+        // 2. Items to ADD (new items not in order)
+        const itemsToUpdate: Array<{
+          id: number;
+          productName: string;
+          existingQty: number;
+          addQty: number;
+          newQty: number;
+          unitPrice: number;
+          discountVnd: number;
+          total: number;
+        }> = [];
+
+        const itemsToAdd: Array<{
+          productId: number;
+          productName: string;
+          quantity: number;
+          unitPrice: string;
+          discount: string;
+          total: string;
+          tax: string;
+        }> = [];
+
+        // Process each cart item
+        for (const cartItem of tempCart) {
+          const existingItem = orderItems?.find(
+            (oi) => oi.productId === cartItem.productId,
+          );
+
+          const unitPrice = parseFloat(cartItem.product.price);
+          const taxRate = cartItem.product.taxRate
+            ? parseFloat(cartItem.product.taxRate) / 100
+            : 0;
+
+          if (existingItem) {
+            // === CASE 1: UPDATE EXISTING ITEM (Merge quantities) ===
+            const existingQty = parseFloat(existingItem.quantity);
+            const addQty = cartItem.quantity;
+            const newQty = existingQty + addQty;
+
+            console.log(`🔄 MERGE: Product "${cartItem.product.name}"`, {
+              existingQty,
+              addQty,
+              newQty,
+            });
+
+            // Calculate discount for the MERGED quantity
+            // Use the NEW discount from cart (if any)
+            let mergedDiscountVnd = 0;
+
+            if (
+              cartItem.discountVnd !== undefined &&
+              cartItem.discountVnd > 0
+            ) {
+              // User set a VND discount in cart - apply to merged total
+              const itemSubtotal = unitPrice * newQty;
+              const discountRatio = cartItem.discountVnd / (unitPrice * addQty);
+              mergedDiscountVnd = Math.round(itemSubtotal * discountRatio);
+
+              console.log(`💰 Applying cart discount to merged item:`, {
+                cartDiscountVnd: cartItem.discountVnd,
+                newSubtotal: itemSubtotal,
+                mergedDiscountVnd,
+              });
+            } else if (cartItem.discount && cartItem.discount > 0) {
+              // User set a % discount in cart
+              if (cartItem.discountType === "percent") {
+                const itemSubtotal = unitPrice * newQty;
+                mergedDiscountVnd = Math.round(
+                  (itemSubtotal * cartItem.discount) / 100,
+                );
+
+                console.log(`💰 Applying cart % discount to merged item:`, {
+                  discountPercent: cartItem.discount,
+                  newSubtotal: itemSubtotal,
+                  mergedDiscountVnd,
+                });
+              } else {
+                mergedDiscountVnd = cartItem.discount;
+              }
             } else {
-              itemDiscountVnd = item.discount;
+              // Keep existing discount from order item
+              const existingDiscountVnd = parseFloat(
+                existingItem.discount || "0",
+              );
+              mergedDiscountVnd = existingDiscountVnd;
+
+              console.log(`💰 Keeping existing discount for merged item:`, {
+                existingDiscountVnd,
+              });
             }
+
+            const newSubtotal = unitPrice * newQty;
+            const newTotal = Math.max(0, newSubtotal - mergedDiscountVnd);
+            const tax = newSubtotal * taxRate;
+
+            itemsToUpdate.push({
+              id: existingItem.id,
+              productName: cartItem.product.name,
+              existingQty,
+              addQty,
+              newQty,
+              unitPrice,
+              discountVnd: mergedDiscountVnd,
+              total: newTotal,
+              tax: tax,
+            });
+          } else {
+            // === CASE 2: ADD NEW ITEM ===
+            console.log(`➕ NEW: Product "${cartItem.product.name}"`, {
+              quantity: cartItem.quantity,
+              unitPrice,
+            });
+
+            // Calculate discount for NEW item
+            let itemDiscountVnd = 0;
+
+            if (
+              cartItem.discountVnd !== undefined &&
+              cartItem.discountVnd > 0
+            ) {
+              itemDiscountVnd = cartItem.discountVnd;
+              console.log(`💰 New item VND discount:`, itemDiscountVnd);
+            } else if (cartItem.discount && cartItem.discount > 0) {
+              if (cartItem.discountType === "percent") {
+                const itemSubtotal = unitPrice * cartItem.quantity;
+                itemDiscountVnd = Math.round(
+                  (itemSubtotal * cartItem.discount) / 100,
+                );
+                console.log(`💰 New item % discount:`, {
+                  percent: cartItem.discount,
+                  subtotal: itemSubtotal,
+                  discountVnd: itemDiscountVnd,
+                });
+              } else {
+                itemDiscountVnd = cartItem.discount;
+              }
+            }
+
+            const itemSubtotal = unitPrice * cartItem.quantity;
+            const itemTotal = Math.max(0, itemSubtotal - itemDiscountVnd);
+            const itemTax = itemSubtotal * taxRate;
+
+            itemsToAdd.push({
+              productId: cartItem.productId,
+              productName: cartItem.product.name,
+              quantity: cartItem.quantity,
+              unitPrice: cartItem.product.price,
+              discount: itemDiscountVnd.toFixed(2),
+              total: itemTotal.toFixed(2),
+              tax: itemTax.toFixed(2),
+            });
           }
-
-          const itemSubtotal = parseFloat(item.product.price) * item.quantity;
-          const itemTotal = Math.max(0, itemSubtotal - itemDiscountVnd);
-
-          return {
-            productId: item.productId,
-            quantity: item.quantity,
-            unitPrice: item.product.price,
-            discount: itemDiscountVnd.toFixed(2),
-            total: itemTotal.toFixed(2),
-            tax: (itemSubtotal * (item.product.taxRate || 0)).toFixed(2),
-          };
-        });
-
-        console.log("📦 Items to add:", items);
-
-        // Add items using the dedicated endpoint
-        const response = await apiRequest(
-          "POST",
-          `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/items`,
-          {
-            items,
-          },
-        );
-
-        const result = await response.json();
-        console.log("✅ Items added successfully:", result);
-
-        // Calculate total discount from new items
-        const totalNewItemsDiscount = items.reduce((sum, item) => {
-          return sum + parseFloat(item.discount);
-        }, 0);
-
-        // Get current order discount
-        const currentOrderDiscount = parseFloat(activeOrder.discount || "0");
-
-        console.log("💰 Discount check:", {
-          currentOrderDiscount,
-          totalNewItemsDiscount,
-          shouldRecalculate: Math.abs(currentOrderDiscount - totalNewItemsDiscount) > 0.01
-        });
-
-        // Only recalculate if order discount differs from sum of item discounts
-        // This prevents redistributing discounts that are already correctly set
-        if (Math.abs(currentOrderDiscount - totalNewItemsDiscount) > 0.01) {
-          await apiRequest(
-            "POST",
-            `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
-            {},
-          );
-          console.log("✅ Order totals recalculated");
-        } else {
-          console.log("⏭️ Skipping recalculation - discount already matches item discounts");
-          // Still need to update order totals without redistributing discounts
-          await apiRequest(
-            "POST",
-            `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
-            {},
-          );
-          console.log("✅ Order totals updated");
         }
 
-        return result;
+        // === ADD NEW ITEMS ONLY (KEEP EXISTING) ===
+        console.log(
+          "➕ ADD MODE: Keeping existing items and adding new cart items",
+        );
+
+        // Step 1: Filter out items that already exist in the order
+        const existingProductIds = new Set(
+          orderItems?.map((item) => item.productId) || [],
+        );
+
+        const trulyNewItems = tempCart.filter(
+          (cartItem) => !existingProductIds.has(cartItem.productId),
+        );
+
+        console.log(`📊 Cart analysis:`, {
+          totalInCart: tempCart.length,
+          existingInOrder: tempCart.length - trulyNewItems.length,
+          trulyNew: trulyNewItems.length,
+          existingProductIds: Array.from(existingProductIds),
+        });
+
+        // Step 2: Add ONLY truly new items (not already in order)
+        if (trulyNewItems.length > 0) {
+          console.log(
+            `➕ Adding ${trulyNewItems.length} truly new items to order:`,
+          );
+
+          const newItems = trulyNewItems.map((cartItem) => {
+            const unitPrice = parseFloat(cartItem.product.price);
+            const quantity = cartItem.quantity;
+            const taxRate = parseFloat(cartItem.product.taxRate || "0") / 100;
+
+            // Calculate discount for this item
+            let itemDiscountVnd = 0;
+            if (
+              cartItem.discountVnd !== undefined &&
+              cartItem.discountVnd > 0
+            ) {
+              itemDiscountVnd = cartItem.discountVnd;
+            } else if (cartItem.discount && cartItem.discount > 0) {
+              if (cartItem.discountType === "percent") {
+                const itemSubtotal = unitPrice * quantity;
+                itemDiscountVnd = Math.round(
+                  (itemSubtotal * cartItem.discount) / 100,
+                );
+              } else {
+                itemDiscountVnd = cartItem.discount;
+              }
+            }
+
+            const itemSubtotal = unitPrice * quantity;
+            const itemTotal = Math.max(0, itemSubtotal - itemDiscountVnd);
+            const itemTax = itemSubtotal * taxRate;
+
+            console.log(
+              `  ➕ NEW: ${cartItem.product.name}: ${quantity} x ${unitPrice} (discount: ${itemDiscountVnd})`,
+            );
+
+            return {
+              productId: cartItem.productId,
+              productName: cartItem.product.name,
+              quantity: quantity,
+              unitPrice: cartItem.product.price,
+              discount: itemDiscountVnd.toFixed(2),
+              total: itemTotal.toFixed(2),
+              tax: itemTax.toFixed(2),
+            };
+          });
+
+          // Add new items to order (existing items will be kept)
+          const addItemsResponse = await apiRequest(
+            "POST",
+            `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items`,
+            { items: newItems },
+          );
+
+          console.log(
+            `✅ Successfully added ${newItems.length} new items to order`,
+          );
+
+          // Step 3: Only recalculate if new items have NO discount
+          // This prevents redistribution of existing item discounts
+          const hasNewItemDiscounts = newItems.some(
+            (item) => parseFloat(item.discount) > 0,
+          );
+
+          if (hasNewItemDiscounts) {
+            console.log(
+              "🧮 Recalculating order totals (no new item discounts)",
+            );
+            const recalcResponse = await apiRequest(
+              "POST",
+              `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+              {},
+            );
+            const recalcResult = await recalcResponse.json();
+            console.log("✅ Order totals updated:", recalcResult);
+            return recalcResult;
+          } else {
+            console.log(
+              "⚠️ Skipping recalculate to preserve item-level discounts",
+            );
+            return addItemsResponse.json();
+          }
+        } else {
+          const updatedItemsResponse = await apiRequest(
+            "POST",
+            `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items/update`,
+            { items: itemsToUpdate },
+          );
+
+          const recalcResponse = await apiRequest(
+            "POST",
+            `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+            {},
+          );
+          const recalcResult = await recalcResponse.json();
+          console.log("✅ Order totals updated:", recalcResult);
+          return recalcResult;
+          console.log(
+            `ℹ️ No new items to add - all cart items already exist in order`,
+          );
+          return { status: "no_changes" };
+        }
       }
     },
     onSuccess: async () => {
       console.log("✅ Order created/updated successfully, refreshing data");
 
       // Clear all caches first
-      queryClient.removeQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/orders"] });
-      queryClient.removeQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/order-items"] });
-      queryClient.removeQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/tables"] });
+      queryClient.removeQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] });
+      queryClient.removeQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items"] });
+      queryClient.removeQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] });
 
       // Force immediate refresh
       await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/tables", tableId] }),
-        queryClient.refetchQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/tables"] }),
+        queryClient.refetchQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] }),
+        queryClient.refetchQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables", tableId] }),
+        queryClient.refetchQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] }),
       ]);
 
       // Refetch order items if there's an active order
       if (activeOrder?.id) {
         await queryClient.refetchQueries({
-          queryKey: ["https://order-mobile-be.onrender.com/api/order-items", activeOrder.id],
+          queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder.id],
         });
       }
 
@@ -479,7 +714,7 @@ export function MobileTableView({
 
   // Calculate subtotal (before tax and discount)
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://order-mobile-be.onrender.com/api/store-settings"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
   });
   const priceIncludesTax = storeSettings?.priceIncludesTax ?? true;
 
@@ -503,39 +738,31 @@ export function MobileTableView({
   // Calculate total discounts - use EITHER item discounts OR order discount, not both
   let totalDiscount = 0;
 
-  // Calculate sum of all item discounts
-  const tempCartItemDiscounts = tempCart.reduce((sum, item) => {
-    const basePrice = parseFloat(item.product.price);
-    const quantity = item.quantity;
-    const itemDiscount = item.discount || 0;
-
-    if (item.discountType === "percent") {
-      return sum + Math.round((basePrice * quantity * itemDiscount) / 100);
-    } else {
-      return sum + itemDiscount;
-    }
+  // Calculate sum of all item discounts (in VND)
+  const tempCartItemDiscountsVnd = tempCart.reduce((sum, item) => {
+    return sum + (item.discountVnd || 0);
   }, 0);
 
-  // Calculate order-level discount
-  let tempCartOrderDiscount = 0;
+  // Calculate order-level discount (in VND)
+  let tempCartOrderDiscountVnd = 0;
   if (orderDiscountType === "percent") {
-    tempCartOrderDiscount = Math.round(
+    tempCartOrderDiscountVnd = Math.round(
       (tempCartSubtotalBeforeDiscount * orderDiscount) / 100,
     );
   } else {
-    tempCartOrderDiscount = orderDiscount;
+    tempCartOrderDiscountVnd = orderDiscount;
   }
 
   // Determine which discount to use based on source
   if (discountSource === "order" && orderDiscount > 0) {
     // User manually entered order discount - use it
-    totalDiscount = tempCartOrderDiscount;
-  } else if (discountSource === "item" || tempCartItemDiscounts > 0) {
-    // User manually entered item discounts - use sum of item discounts
-    totalDiscount = tempCartItemDiscounts;
+    totalDiscount = tempCartOrderDiscountVnd;
+  } else if (discountSource === "item" || tempCartItemDiscountsVnd > 0) {
+    // User manually entered item discounts - use sum of item discounts (in VND)
+    totalDiscount = tempCartItemDiscountsVnd;
   } else if (orderDiscount > 0) {
-    // Fallback to order discount
-    totalDiscount = tempCartOrderDiscount;
+    // Fallback to order discount (in VND)
+    totalDiscount = tempCartOrderDiscountVnd;
   }
 
   // Calculate subtotal after discounts
@@ -551,25 +778,18 @@ export function MobileTableView({
     const taxRate = item.product.taxRate
       ? parseFloat(item.product.taxRate) / 100
       : 0;
-    const itemDiscount = item.discount || 0;
+    const itemDiscountVnd = item.discountVnd || 0; // Use VND discount
 
     if (taxRate > 0) {
-      let itemTotal = basePrice * quantity;
-
-      // Apply item discount
-      if (item.discountType === "percent") {
-        itemTotal -= Math.round((itemTotal * itemDiscount) / 100);
-      } else {
-        itemTotal -= itemDiscount;
-      }
+      let itemTotalAfterDiscount = basePrice * quantity - itemDiscountVnd;
 
       if (priceIncludesTax) {
-        const giaGomThue = itemTotal;
-        const tamTinh = Math.round(giaGomThue / (1 + taxRate));
-        const itemTax = giaGomThue - tamTinh;
+        const itemTax = Math.round(
+          itemTotalAfterDiscount - itemTotalAfterDiscount / (1 + taxRate),
+        );
         return sum + itemTax;
       } else {
-        const itemTax = Math.round(itemTotal * taxRate);
+        const itemTax = Math.round(itemTotalAfterDiscount * taxRate);
         return sum + itemTax;
       }
     }
@@ -580,10 +800,10 @@ export function MobileTableView({
 
   // Fetch all unpaid orders for this table
   const { data: pendingOrders } = useQuery<Order[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/orders", "table", tableId],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", "table", tableId],
     queryFn: async () => {
       const allOrders = await queryClient.fetchQuery({
-        queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+        queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
       });
       const filtered = (allOrders as Order[]).filter(
         (o: Order) =>
@@ -643,7 +863,7 @@ export function MobileTableView({
                 onClick={async () => {
                   // Set this order as the active one by invalidating and switching view
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
                   });
                   setViewMode("order");
                 }}
@@ -877,15 +1097,111 @@ export function MobileTableView({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              // Show dialog to input note for decrease
-                              console.log("➖ Decrease button clicked for item:", item);
-                              setItemToDecreaseWithNote(item);
-                              setShowDecreaseNoteDialog(true);
-                              setDecreaseNote("");
-                              setDecreaseQuantity(1);
+                              console.log(
+                                "➖ Decrease button clicked for item:",
+                                item,
+                              );
+
+                              // Check if item has been sent to kitchen
+                              if (!item.status || item.status === "") {
+                                // Item not sent to kitchen - decrease quantity directly
+                                console.log(
+                                  "✅ Item not sent to kitchen, decreasing directly",
+                                );
+                                const newQuantity =
+                                  parseFloat(item.quantity) - 1;
+
+                                if (newQuantity <= 0) {
+                                  // Delete item if quantity becomes 0
+                                  try {
+                                    await apiRequest(
+                                      "DELETE",
+                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                    );
+                                    await refetchOrderItems();
+
+                                    // Recalculate order totals
+                                    if (activeOrder) {
+                                      await apiRequest(
+                                        "POST",
+                                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                        {},
+                                      );
+                                    }
+
+                                    await queryClient.invalidateQueries({
+                                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                    });
+
+                                    toast({
+                                      title: "Đã xóa món",
+                                      description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Lỗi",
+                                      description: "Không thể xóa món",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                } else {
+                                  // Decrease quantity by 1
+                                  try {
+                                    const unitPrice = parseFloat(
+                                      item.unitPrice,
+                                    );
+                                    const newTotal = (
+                                      unitPrice * newQuantity
+                                    ).toFixed(2);
+
+                                    await apiRequest(
+                                      "PUT",
+                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                      {
+                                        quantity: newQuantity,
+                                        total: newTotal,
+                                      },
+                                    );
+                                    await refetchOrderItems();
+
+                                    // Recalculate order totals
+                                    if (activeOrder) {
+                                      await apiRequest(
+                                        "POST",
+                                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                        {},
+                                      );
+                                    }
+
+                                    await queryClient.invalidateQueries({
+                                      queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                    });
+
+                                    toast({
+                                      title: "Đã giảm số lượng",
+                                      description: `Đã giảm "${item.productName}" xuống ${newQuantity}`,
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Lỗi",
+                                      description: "Không thể giảm số lượng",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }
+                              } else {
+                                // Item already sent to kitchen - show confirmation dialog
+                                console.log(
+                                  "⚠️ Item sent to kitchen, showing confirmation dialog",
+                                );
+                                setItemToDecreaseWithNote(item);
+                                setShowDecreaseNoteDialog(true);
+                                setDecreaseNote("");
+                                setDecreaseQuantity(1);
+                              }
                             }}
                             className="h-8 px-3"
                           >
@@ -900,7 +1216,10 @@ export function MobileTableView({
                             onClick={async (e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log("➕ Increase button clicked for item:", item);
+                              console.log(
+                                "➕ Increase button clicked for item:",
+                                item,
+                              );
 
                               const newQuantity = parseFloat(item.quantity) + 1;
                               const unitPrice = parseFloat(item.unitPrice);
@@ -911,7 +1230,7 @@ export function MobileTableView({
                               try {
                                 await apiRequest(
                                   "PUT",
-                                  `https://order-mobile-be.onrender.com/api/order-items/${item.id}`,
+                                  `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
                                   {
                                     quantity: newQuantity,
                                     total: newTotal,
@@ -922,13 +1241,13 @@ export function MobileTableView({
                                 // Recalculate order totals
                                 await apiRequest(
                                   "POST",
-                                  `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+                                  `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                                   {},
                                 );
 
                                 // Invalidate orders cache to refresh totals
                                 await queryClient.invalidateQueries({
-                                  queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                                  queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
                                 });
                               } catch (error) {
                                 toast({
@@ -947,24 +1266,79 @@ export function MobileTableView({
 
                       {/* Delete button on separate row for better accessibility */}
                       <div className="flex justify-end mt-2">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log("🗑️ Delete button onClick triggered for item:", item);
-                            console.log("🗑️ Setting itemToDeleteWithNote:", item);
-                            console.log("🗑️ Setting showDeleteConfirmDialog to true");
-                            setItemToDeleteWithNote(item);
-                            setDeleteNote("");
-                            setShowDeleteConfirmDialog(true);
-                            console.log("🗑️ Dialog state should now be open");
+                            console.log(
+                              "🗑️ Delete button clicked for item:",
+                              item,
+                            );
+
+                            // Check if item has been sent to kitchen
+                            if (!item.status || item.status === "") {
+                              // Item not sent to kitchen yet - delete directly
+                              console.log(
+                                "✅ Item not sent to kitchen, deleting directly",
+                              );
+
+                              const performDelete = async () => {
+                                try {
+                                  await apiRequest(
+                                    "DELETE",
+                                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
+                                  );
+                                  await refetchOrderItems();
+
+                                  // Recalculate order totals if there's an active order
+                                  if (activeOrder) {
+                                    await apiRequest(
+                                      "POST",
+                                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                                      {},
+                                    );
+                                  }
+
+                                  // Invalidate orders cache
+                                  await queryClient.invalidateQueries({
+                                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                                  });
+
+                                  toast({
+                                    title: "Đã xóa món",
+                                    description: `Đã xóa "${item.productName}" khỏi đơn hàng`,
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "❌ Error deleting item:",
+                                    error,
+                                  );
+                                  toast({
+                                    title: "Lỗi",
+                                    description: "Không thể xóa món",
+                                    variant: "destructive",
+                                  });
+                                }
+                              };
+
+                              performDelete();
+                            } else {
+                              // Item already sent to kitchen - show confirmation dialog
+                              console.log(
+                                "⚠️ Item sent to kitchen, showing confirmation dialog",
+                              );
+                              setItemToDeleteWithNote(item);
+                              setDeleteNote("");
+                              setShowDeleteConfirmDialog(true);
+                            }
                           }}
-                          className="inline-flex items-center justify-center gap-2 h-8 px-3 text-sm font-medium rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors touch-manipulation active:bg-red-100"
-                          type="button"
+                          className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 mr-1" />
                           Xóa món
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Send to Kitchen button - only show if status is pending */}
@@ -976,7 +1350,7 @@ export function MobileTableView({
                             try {
                               await apiRequest(
                                 "PATCH",
-                                `https://order-mobile-be.onrender.com/api/order-items/${item.id}`,
+                                `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`,
                                 {
                                   status: "progress",
                                 },
@@ -984,7 +1358,7 @@ export function MobileTableView({
 
                               // Invalidate and refetch order items
                               await queryClient.invalidateQueries({
-                                queryKey: ["https://order-mobile-be.onrender.com/api/order-items", activeOrder.id],
+                                queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder.id],
                               });
                               await refetchOrderItems();
                             } catch (error) {
@@ -1045,7 +1419,7 @@ export function MobileTableView({
                   const updatePromises = orderItems
                     .filter((item) => !item.status)
                     .map((item) =>
-                      apiRequest("PATCH", `https://order-mobile-be.onrender.com/api/order-items/${item.id}`, {
+                      apiRequest("PATCH", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`, {
                         status: "pending",
                       }),
                     );
@@ -1058,7 +1432,7 @@ export function MobileTableView({
 
                   // Invalidate and refetch order items
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://order-mobile-be.onrender.com/api/order-items", activeOrder.id],
+                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", activeOrder.id],
                   });
                   await refetchOrderItems();
                 } catch (error) {
@@ -1148,6 +1522,13 @@ export function MobileTableView({
                   activeOrder,
                   orderItemsCount: orderItems?.length,
                 });
+
+                // Clear tempCart when switching back to order view
+                setTempCart([]);
+                setOrderDiscount(0);
+                setOrderDiscountType("vnd");
+                setDiscountSource(null);
+
                 // If there are multiple pending orders, show list view
                 if (pendingOrders && pendingOrders.length > 1) {
                   setViewMode("pending-orders");
@@ -1236,7 +1617,7 @@ export function MobileTableView({
         </div>
       </div>
 
-      {/* Temporary Cart Preview */}
+      {/* Temporary Cart Preview - Always show when there are items */}
       {tempCart.length > 0 && (
         <div
           className={`fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-20 transition-all duration-300 ${isCartExpanded ? "p-4" : "p-0"}`}
@@ -1350,136 +1731,81 @@ export function MobileTableView({
 
                       {/* Item Discount */}
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600">
-                          {t("common.itemDiscount")}:
-                        </span>
+                        <span className="text-gray-600">Giảm giá SP:</span>
                         <Input
                           type="text"
                           value={
-                            item.discount && item.discount > 0
-                              ? Math.floor(item.discount).toLocaleString(
+                            item.discountVnd && item.discountVnd > 0
+                              ? Math.floor(item.discountVnd).toLocaleString(
                                   "vi-VN",
                                 )
                               : ""
                           }
                           onChange={(e) => {
+                            const inputValue = e.target.value.replace(
+                              /[^\d]/g,
+                              "",
+                            );
                             const value = Math.max(
                               0,
-                              parseFloat(
-                                e.target.value.replace(/[^\d]/g, ""),
-                              ) || 0,
+                              parseFloat(inputValue) || 0,
                             );
                             const basePrice = parseFloat(item.product.price);
                             const quantity = item.quantity;
                             const itemTotal = basePrice * quantity;
 
-                            let finalValue = value;
+                            let discountVnd = value;
 
-                            // Validate discount doesn't exceed item total
-                            if (item.discountType === "percent") {
-                              // Limit percentage to 100%
-                              finalValue = Math.min(100, value);
-                            } else {
-                              // Limit VND discount to item total
-                              if (value > itemTotal) {
-                                finalValue = 0;
-                                toast({
-                                  title: "Lỗi giảm giá",
-                                  description:
-                                    "Giảm giá không được vượt quá giá sản phẩm",
-                                  variant: "destructive",
-                                });
-                              }
+                            // Validate doesn't exceed item total
+                            if (value > itemTotal) {
+                              discountVnd = 0;
+                              toast({
+                                title: "Lỗi giảm giá",
+                                description:
+                                  "Giảm giá không được vượt quá giá sản phẩm",
+                                variant: "destructive",
+                              });
                             }
 
-                            // Update only this item's discount
+                            // Update cart with VND value
                             const updatedCart = tempCart.map((cartItem) =>
                               cartItem.productId === item.productId
                                 ? {
                                     ...cartItem,
-                                    discount: finalValue,
-                                    discountType: item.discountType || "vnd",
+                                    discount: 0,
+                                    discountVnd: discountVnd, // Store VND for calculation
+                                    discountType: "vnd" as
+                                      | "percent"
+                                      | "amount"
+                                      | "vnd",
                                   }
                                 : cartItem,
                             );
                             setTempCart(updatedCart);
 
-                            // Mark discount source as item-level only if there's a value
-                            if (finalValue > 0) {
+                            // Mark discount source and clear order discount
+                            if (discountVnd > 0) {
                               setDiscountSource("item");
+                              setOrderDiscount(0);
                             } else if (
                               updatedCart.every(
-                                (c) => !c.discount || c.discount === 0,
+                                (c) => !c.discountVnd || c.discountVnd === 0,
                               )
                             ) {
-                              // Only clear source if all items have no discount
                               setDiscountSource(null);
                             }
                           }}
                           placeholder="0"
                           className="flex-1 h-8 text-right"
                         />
-                        <div className="flex gap-1">
-                          <Button
-                            variant={
-                              item.discountType === "vnd"
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => {
-                              const updatedCart = tempCart.map((cartItem) =>
-                                cartItem.productId === item.productId
-                                  ? {
-                                      ...cartItem,
-                                      discountType: "vnd" as
-                                        | "percent"
-                                        | "amount"
-                                        | "vnd",
-                                      discount: 0,
-                                    }
-                                  : cartItem,
-                              );
-                              setTempCart(updatedCart);
-                            }}
-                            className="h-8 w-10 p-0 text-xs"
-                          >
-                            ₫
-                          </Button>
-                          <Button
-                            variant={
-                              item.discountType === "percent"
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => {
-                              const updatedCart = tempCart.map((cartItem) =>
-                                cartItem.productId === item.productId
-                                  ? {
-                                      ...cartItem,
-                                      discountType: "percent" as
-                                        | "percent"
-                                        | "amount"
-                                        | "vnd",
-                                      discount: 0,
-                                    }
-                                  : cartItem,
-                              );
-                              setTempCart(updatedCart);
-                            }}
-                            className="h-8 w-10 p-0 text-xs"
-                          >
-                            %
-                          </Button>
-                        </div>
+                        <span className="text-xs">₫</span>
                       </div>
 
                       {/* Display allocated order discount only if discount source is order-level and item has no manual discount */}
                       {discountSource === "order" &&
                         orderDiscount > 0 &&
                         orderDiscountType === "vnd" &&
-                        (!item.discount || item.discount === 0) && (
+                        (!item.discountVnd || item.discountVnd === 0) && ( // Check discountVnd
                           <div className="text-xs text-orange-600 mt-1 flex items-center justify-between">
                             <span>{t("common.allocatedOrderDiscount")}:</span>
                             <span className="font-medium">
@@ -1547,8 +1873,18 @@ export function MobileTableView({
                       if (value > 0) {
                         setDiscountSource("order");
 
-                        // Redistribute order discount to items proportionally if in VND
-                        if (orderDiscountType === "vnd") {
+                        // Check if we need to recalculate item discounts
+                        const currentItemDiscountsSum = tempCart.reduce(
+                          (sum, item) => sum + (item.discountVnd || 0),
+                          0,
+                        );
+
+                        // Only recalculate if order discount differs from sum of item discounts
+                        if (
+                          orderDiscountType === "vnd" &&
+                          Math.abs(value - currentItemDiscountsSum) > 0.01
+                        ) {
+                          // Redistribute order discount to items proportionally
                           const totalBeforeDiscount = tempCart.reduce(
                             (sum, item) => {
                               return (
@@ -1585,7 +1921,7 @@ export function MobileTableView({
 
                             return {
                               ...item,
-                              discount: itemDiscount,
+                              discountVnd: itemDiscount, // Store VND discount
                               discountType: "vnd" as
                                 | "percent"
                                 | "amount"
@@ -1602,6 +1938,7 @@ export function MobileTableView({
                           tempCart.map((item) => ({
                             ...item,
                             discount: 0,
+                            discountVnd: 0, // Clear VND discount
                             discountType: "vnd",
                           })),
                         );
@@ -1619,7 +1956,7 @@ export function MobileTableView({
                         const updatedCart = tempCart.map((item) => {
                           const basePrice = parseFloat(item.product.price);
                           const quantity = item.quantity;
-                          const currentItemDiscountVnd = item.discount || 0; // Assuming item.discount is VND
+                          const currentItemDiscountVnd = item.discountVnd || 0; // Use VND discount
 
                           // Calculate the percentage equivalent of the current VND discount
                           const itemTotal = basePrice * quantity;
@@ -1630,13 +1967,13 @@ export function MobileTableView({
 
                           return {
                             ...item,
-                            discount: discountPercentage,
+                            discount: discountPercentage, // Store % for display
+                            discountVnd: 0, // Clear VND value when switching to percent
                             discountType: "percent",
                           };
                         });
                         setTempCart(updatedCart);
-                        // Also reset order discount to 0 or recalculate based on new type if needed
-                        setOrderDiscount(0); // Reset order discount when changing type to percent
+                        setOrderDiscount(0); // Reset order discount to 0 when changing type to percent
                       } else if (value === "vnd") {
                         // If switching to VND, ensure item discounts are treated as VND
                         const updatedCart = tempCart.map((item) => {
@@ -1652,16 +1989,22 @@ export function MobileTableView({
                             );
                             return {
                               ...item,
-                              discount: discountVnd,
+                              discount: discountVnd, // Store VND for display
+                              discountVnd: discountVnd, // Store VND for calculation
                               discountType: "vnd",
                             };
                           }
-                          return { ...item, discountType: "vnd" };
+                          // Ensure discountVnd is set even if no discount was applied previously
+                          return {
+                            ...item,
+                            discountVnd: item.discountVnd || 0,
+                            discountType: "vnd",
+                          };
                         });
                         setTempCart(updatedCart);
                         // Recalculate order discount based on the sum of VND item discounts
                         const totalItemDiscountVnd = updatedCart.reduce(
-                          (sum, cartItem) => sum + (cartItem.discount || 0),
+                          (sum, cartItem) => sum + (cartItem.discountVnd || 0),
                           0,
                         );
                         setOrderDiscount(totalItemDiscountVnd);
@@ -1784,7 +2127,7 @@ export function MobileTableView({
                               {t("common.itemDiscount")}: -
                               {tempCartItem.discountType === "percent"
                                 ? `${tempCartItem.discount.toFixed(2)}%`
-                                : `${Math.floor(tempCartItem.discount).toLocaleString("vi-VN")} ₫`}
+                                : `${Math.floor(tempCartItem.discountVnd || 0).toLocaleString("vi-VN")} ₫`}
                             </div>
                           )}
                       </div>
@@ -1979,7 +2322,7 @@ export function MobileTableView({
                 try {
                   await apiRequest(
                     "DELETE",
-                    `https://order-mobile-be.onrender.com/api/order-items/${itemToDelete.id}`,
+                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDelete.id}`,
                   );
                   await refetchOrderItems();
 
@@ -1987,14 +2330,14 @@ export function MobileTableView({
                   if (activeOrder) {
                     await apiRequest(
                       "POST",
-                      `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                       {},
                     );
                   }
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
                   });
 
                   setShowDeleteItemDialog(false);
@@ -2025,7 +2368,7 @@ export function MobileTableView({
       <AlertDialog
         open={showDeleteConfirmDialog}
         onOpenChange={(open) => {
-          console.log("🔧 AlertDialog onOpenChange called with:", open);
+          console.log("🔧 Delete Dialog onOpenChange:", open);
           setShowDeleteConfirmDialog(open);
           if (!open) {
             setDeleteNote("");
@@ -2033,119 +2376,123 @@ export function MobileTableView({
           }
         }}
       >
-        <AlertDialogPortal>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
-              <AlertDialogDescription>
-                Vui lòng nhập ghi chú để xác nhận xóa món khỏi đơn hàng
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="py-4">
-              <div className="mb-3">
-                <p className="text-sm font-medium">
-                  Món: {itemToDeleteWithNote?.productName}
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa món</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vui lòng nhập ghi chú để xác nhận xóa món khỏi đơn hàng
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="mb-3">
+              <p className="text-sm font-medium">
+                Món: {itemToDeleteWithNote?.productName}
+              </p>
+              <p className="text-sm text-gray-500">
+                Số lượng: {itemToDeleteWithNote?.quantity}
+              </p>
+              {itemToDeleteWithNote?.status && (
+                <p className="text-sm text-orange-600 mt-1">
+                  Trạng thái:{" "}
+                  {itemToDeleteWithNote.status === "pending"
+                    ? "Chờ chế biến"
+                    : itemToDeleteWithNote.status === "progress"
+                      ? "Đang chế biến"
+                      : itemToDeleteWithNote.status === "completed"
+                        ? "Hoàn thành"
+                        : itemToDeleteWithNote.status}
                 </p>
-                <p className="text-sm text-gray-500">
-                  Số lượng: {itemToDeleteWithNote?.quantity}
-                </p>
-                {itemToDeleteWithNote?.status && (
-                  <p className="text-sm text-orange-600 mt-1">
-                    Trạng thái:{" "}
-                    {itemToDeleteWithNote.status === "pending"
-                      ? "Chờ chế biến"
-                      : itemToDeleteWithNote.status === "progress"
-                        ? "Đang chế biến"
-                        : itemToDeleteWithNote.status === "completed"
-                          ? "Hoàn thành"
-                          : itemToDeleteWithNote.status}
-                  </p>
-                )}
-              </div>
-              <Textarea
-                placeholder="Nhập ghi chú (không bắt buộc)..."
-                value={deleteNote}
-                onChange={(e) => setDeleteNote(e.target.value)}
-                className="min-h-[100px]"
-              />
+              )}
             </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel
-                onClick={() => {
+            <Textarea
+              placeholder="Nhập ghi chú (không bắt buộc)..."
+              value={deleteNote}
+              onChange={(e) => setDeleteNote(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteConfirmDialog(false);
+                setDeleteNote("");
+                setItemToDeleteWithNote(null);
+              }}
+            >
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!itemToDeleteWithNote) return;
+
+                try {
+                  // Update item with notes before deleting if there's a note
+                  if (deleteNote.trim()) {
+                    console.log(
+                      `📝 Saving note to order item ${itemToDeleteWithNote.id}:`,
+                      deleteNote.trim(),
+                    );
+                    await apiRequest(
+                      "PATCH",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                      {
+                        notes: deleteNote.trim(),
+                      },
+                    );
+
+                    // Wait a bit to ensure the update is processed
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                  }
+
+                  // Delete the item
+                  console.log(
+                    `🗑️ Deleting order item ${itemToDeleteWithNote.id}`,
+                  );
+                  await apiRequest(
+                    "DELETE",
+                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                  );
+                  await refetchOrderItems();
+
+                  // Recalculate order totals if there's an active order
+                  if (activeOrder) {
+                    await apiRequest(
+                      "POST",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                      {},
+                    );
+                  }
+
+                  // Invalidate orders cache
+                  await queryClient.invalidateQueries({
+                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
+                  });
+
+                  setShowDeleteConfirmDialog(false);
                   setDeleteNote("");
                   setItemToDeleteWithNote(null);
-                }}
-              >
-                Hủy
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={async () => {
-                  if (!itemToDeleteWithNote) return;
 
-                  try {
-                    // Update item with notes before deleting if there's a note
-                    if (deleteNote.trim()) {
-                      console.log(`📝 Updating order item ${itemToDeleteWithNote.id} with note:`, deleteNote.trim());
-                      await apiRequest(
-                        "PATCH",
-                        `https://order-mobile-be.onrender.com/api/order-items/${itemToDeleteWithNote.id}`,
-                        {
-                          notes: deleteNote.trim(),
-                        },
-                      );
-
-                      // Wait a bit to ensure the update is processed
-                      await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-
-                    // Delete the item
-                    console.log(`🗑️ Deleting order item ${itemToDeleteWithNote.id}`);
-                    await apiRequest(
-                      "DELETE",
-                      `https://order-mobile-be.onrender.com/api/order-items/${itemToDeleteWithNote.id}`,
-                    );
-                    await refetchOrderItems();
-
-                    // Recalculate order totals if there's an active order
-                    if (activeOrder) {
-                      await apiRequest(
-                        "POST",
-                        `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
-                        {},
-                      );
-                    }
-
-                    // Invalidate orders cache
-                    await queryClient.invalidateQueries({
-                      queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
-                    });
-
-                    setShowDeleteConfirmDialog(false);
-                    setDeleteNote("");
-                    setItemToDeleteWithNote(null);
-
-                    toast({
-                      title: "Đã xóa",
-                      description: deleteNote.trim()
-                        ? `Đã xóa "${itemToDeleteWithNote.productName}" - Ghi chú: ${deleteNote}`
-                        : `Đã xóa "${itemToDeleteWithNote.productName}"`,
-                    });
-                  } catch (error) {
-                    console.error("❌ Error deleting item with note:", error);
-                    toast({
-                      title: "Lỗi",
-                      description: "Không thể xóa món",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Xác nhận xóa
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogPortal>
+                  toast({
+                    title: "Đã xóa món",
+                    description: deleteNote.trim()
+                      ? `Đã xóa "${itemToDeleteWithNote.productName}"\nGhi chú: ${deleteNote.trim()}`
+                      : `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
+                  });
+                } catch (error) {
+                  console.error("❌ Error deleting item:", error);
+                  toast({
+                    title: "Lỗi",
+                    description: "Không thể xóa món",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Xác nhận xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
 
       {/* Decrease Quantity with Note Dialog */}
@@ -2157,7 +2504,7 @@ export function MobileTableView({
           <AlertDialogHeader>
             <AlertDialogTitle>Giảm số lượng món</AlertDialogTitle>
             <AlertDialogDescription>
-              Nhập ghi chú để tách sản phẩm có ghi chú
+              Bạn có thể giảm số lượng trực tiếp hoặc tách món với ghi chú riêng
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -2171,19 +2518,32 @@ export function MobileTableView({
             </div>
             <div className="mb-4">
               <label className="text-sm font-medium mb-2 block">
-                Số lượng muốn tách:
+                Số lượng muốn giảm:
               </label>
               <Input
                 type="number"
                 min="1"
-                max={itemToDecreaseWithNote ? parseFloat(itemToDecreaseWithNote.quantity) : 1}
+                max={
+                  itemToDecreaseWithNote
+                    ? parseFloat(itemToDecreaseWithNote.quantity)
+                    : 1
+                }
                 value={decreaseQuantity}
-                onChange={(e) => setDecreaseQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => {
+                  const max = itemToDecreaseWithNote
+                    ? parseFloat(itemToDecreaseWithNote.quantity)
+                    : 1;
+                  const value = Math.max(
+                    1,
+                    Math.min(max, parseInt(e.target.value) || 1),
+                  );
+                  setDecreaseQuantity(value);
+                }}
                 className="w-full"
               />
             </div>
             <Textarea
-              placeholder="Nhập ghi chú (bắt buộc)..."
+              placeholder="Nhập ghi chú (tùy chọn - nếu có ghi chú sẽ tách món riêng)..."
               value={decreaseNote}
               onChange={(e) => setDecreaseNote(e.target.value)}
               className="min-h-[100px]"
@@ -2201,21 +2561,20 @@ export function MobileTableView({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                if (!itemToDecreaseWithNote) return;
+                if (!itemToDecreaseWithNote || !activeOrder) return;
 
-                if (!decreaseNote.trim()) {
-                  toast({
-                    title: "Lỗi",
-                    description: "Vui lòng nhập ghi chú",
-                    variant: "destructive",
-                  });
-                  return;
-                }
+                const currentQuantity = parseFloat(
+                  itemToDecreaseWithNote.quantity,
+                );
+                const quantityToDecrease = Math.min(
+                  decreaseQuantity,
+                  currentQuantity,
+                );
 
-                const currentQuantity = parseFloat(itemToDecreaseWithNote.quantity);
-                const quantityToDecrease = Math.min(decreaseQuantity, currentQuantity);
-
-                if (quantityToDecrease <= 0 || quantityToDecrease > currentQuantity) {
+                if (
+                  quantityToDecrease <= 0 ||
+                  quantityToDecrease > currentQuantity
+                ) {
                   toast({
                     title: "Lỗi",
                     description: "Số lượng không hợp lệ",
@@ -2225,67 +2584,106 @@ export function MobileTableView({
                 }
 
                 try {
-                  const unitPrice = parseFloat(itemToDecreaseWithNote.unitPrice);
+                  const unitPrice = parseFloat(
+                    itemToDecreaseWithNote.unitPrice,
+                  );
                   const newQuantity = currentQuantity - quantityToDecrease;
 
-                  // Update current item quantity
-                  if (newQuantity > 0) {
-                    const newTotal = (unitPrice * newQuantity).toFixed(2);
-                    await apiRequest(
-                      "PUT",
-                      `https://order-mobile-be.onrender.com/api/order-items/${itemToDecreaseWithNote.id}`,
-                      {
-                        quantity: newQuantity,
-                        total: newTotal,
-                      },
-                    );
-                  } else {
-                    // Delete item if quantity becomes 0
-                    await apiRequest(
-                      "DELETE",
-                      `https://order-mobile-be.onrender.com/api/order-items/${itemToDecreaseWithNote.id}`,
-                    );
-                  }
+                  if (decreaseNote.trim()) {
+                    // Case 1: Có ghi chú - tách món riêng
+                    // Update current item quantity
+                    if (newQuantity > 0) {
+                      const newTotal = (unitPrice * newQuantity).toFixed(2);
+                      await apiRequest(
+                        "PUT",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        {
+                          quantity: newQuantity,
+                          total: newTotal,
+                        },
+                      );
+                    } else {
+                      // Delete item if quantity becomes 0
+                      await apiRequest(
+                        "DELETE",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                      );
+                    }
 
-                  // Create new item with note
-                  const newItemTotal = (unitPrice * quantityToDecrease).toFixed(2);
-                  await apiRequest("POST", `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/items`, {
-                    items: [
+                    // Create new item with note
+                    const newItemTotal = (
+                      unitPrice * quantityToDecrease
+                    ).toFixed(2);
+                    await apiRequest(
+                      "POST",
+                      `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/items`,
                       {
-                        productId: itemToDecreaseWithNote.productId,
-                        quantity: quantityToDecrease,
-                        unitPrice: itemToDecreaseWithNote.unitPrice,
-                        discount: "0.00",
-                        total: newItemTotal,
-                        notes: decreaseNote.trim(),
+                        items: [
+                          {
+                            productId: itemToDecreaseWithNote.productId,
+                            quantity: quantityToDecrease,
+                            unitPrice: itemToDecreaseWithNote.unitPrice,
+                            discount: "0.00", // Ensure discount is 0 for new item
+                            total: newItemTotal,
+                            notes: decreaseNote.trim(),
+                          },
+                        ],
                       },
-                    ],
-                  });
+                    );
+
+                    toast({
+                      title: "Thành công",
+                      description: `Đã tách ${quantityToDecrease} "${itemToDecreaseWithNote.productName}" với ghi chú: ${decreaseNote}`,
+                    });
+                  } else {
+                    // Case 2: Không có ghi chú - chỉ giảm số lượng
+                    if (newQuantity > 0) {
+                      const newTotal = (unitPrice * newQuantity).toFixed(2);
+                      await apiRequest(
+                        "PUT",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                        {
+                          quantity: newQuantity,
+                          total: newTotal,
+                        },
+                      );
+                      toast({
+                        title: "Thành công",
+                        description: `Đã giảm số lượng "${itemToDecreaseWithNote.productName}" xuống ${newQuantity}`,
+                      });
+                    } else {
+                      // Delete item if quantity becomes 0
+                      await apiRequest(
+                        "DELETE",
+                        `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
+                      );
+                      toast({
+                        title: "Thành công",
+                        description: `Đã xóa "${itemToDecreaseWithNote.productName}" khỏi đơn hàng`,
+                      });
+                    }
+                  }
 
                   await refetchOrderItems();
 
                   // Recalculate order totals
                   await apiRequest(
                     "POST",
-                    `https://order-mobile-be.onrender.com/api/orders/${activeOrder.id}/recalculate`,
+                    `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${activeOrder.id}/recalculate`,
                     {},
                   );
 
                   // Invalidate orders cache
                   await queryClient.invalidateQueries({
-                    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+                    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
                   });
 
                   setShowDecreaseNoteDialog(false);
                   setDecreaseNote("");
                   setItemToDecreaseWithNote(null);
                   setDecreaseQuantity(1);
-
-                  toast({
-                    title: "Thành công",
-                    description: `Đã tách ${quantityToDecrease} "${itemToDecreaseWithNote.productName}" với ghi chú: ${decreaseNote}`,
-                  });
                 } catch (error) {
+                  console.error("Error decreasing quantity:", error);
                   toast({
                     title: "Lỗi",
                     description: "Không thể giảm số lượng",

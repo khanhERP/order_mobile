@@ -32,11 +32,11 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
     isLoading: isLoadingSettings,
     error: settingsError,
   } = useQuery({
-    queryKey: ["https://order-mobile-be.onrender.com/api/store-settings"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
       try {
         console.log("🔍 Fetching store settings from API...");
-        const response = await apiRequest("GET", "https://order-mobile-be.onrender.com/api/store-settings");
+        const response = await apiRequest("GET", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings");
 
         console.log("📡 Store settings response status:", response.status);
 
@@ -105,7 +105,7 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
       console.log("🔐 Verifying PIN via API...");
 
       // Call API to verify PIN
-      const response = await fetch("https://order-mobile-be.onrender.com/api/auth/verify-pin", {
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/auth/verify-pin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

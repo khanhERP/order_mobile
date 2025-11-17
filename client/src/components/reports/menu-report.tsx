@@ -113,7 +113,7 @@ export function MenuReport({
     refetch,
   } = useQuery({
     queryKey: [
-      "https://order-mobile-be.onrender.com/api/menu-analysis",
+      "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/menu-analysis",
       dateRange.start,
       dateRange.end,
       selectedCategory,
@@ -128,7 +128,7 @@ export function MenuReport({
 
         const response = await apiRequest(
           "GET",
-          `https://order-mobile-be.onrender.com/api/menu-analysis?${params.toString()}`,
+          `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/menu-analysis?${params.toString()}`,
         );
         if (!response.ok) {
           throw new Error(`Failed to fetch menu analysis: ${response.status}`);
@@ -178,7 +178,7 @@ export function MenuReport({
   };
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/menu-analysis"] });
+    queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/menu-analysis"] });
     refetch();
   };
 

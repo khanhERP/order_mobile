@@ -53,12 +53,12 @@ export function DashboardOverview() {
 
   // Fetch store settings
   const { data: storeSettings } = useQuery<StoreSettings>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/store-settings"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/store-settings"],
   });
 
   // Fetch tables with auto-refresh
   const { data: tablesData, refetch: refetchTables } = useQuery({
-    queryKey: ["https://order-mobile-be.onrender.com/api/tables"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"],
     refetchInterval: 3000, // Auto refresh every 3 seconds
     refetchOnWindowFocus: true,
     staleTime: 0,
@@ -66,7 +66,7 @@ export function DashboardOverview() {
 
   // Fetch orders with auto-refresh
   const { data: ordersData, refetch: refetchOrders } = useQuery({
-    queryKey: ["https://order-mobile-be.onrender.com/api/orders"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"],
     refetchInterval: 3000, // Auto refresh every 3 seconds
     refetchOnWindowFocus: true,
     staleTime: 0,
@@ -79,7 +79,7 @@ export function DashboardOverview() {
     const connectWebSocket = () => {
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `https://order-mobile-be.onrender.com/ws`;
+        const wsUrl = `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/ws`;
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -111,8 +111,8 @@ export function DashboardOverview() {
               console.log("🔄 Dashboard: Refreshing table and order data...");
               
               // Clear cache and refetch
-              queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/tables"] });
-              queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/orders"] });
+              queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] });
+              queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] });
               
               // Force immediate refetch
               Promise.all([refetchTables(), refetchOrders()]).then(() => {

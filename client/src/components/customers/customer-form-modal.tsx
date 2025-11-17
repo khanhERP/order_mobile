@@ -46,7 +46,7 @@ export function CustomerFormModal({ isOpen, onClose, customer }: CustomerFormMod
   // Generate customer ID for new customers
   const generateCustomerId = async () => {
     try {
-      const response = await apiRequest("GET", "https://order-mobile-be.onrender.com/api/customers/next-id");
+      const response = await apiRequest("GET", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/next-id");
       const data = await response.json();
       return data.nextId;
     } catch (error) {
@@ -105,11 +105,11 @@ export function CustomerFormModal({ isOpen, onClose, customer }: CustomerFormMod
 
   const createMutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      const response = await apiRequest("POST", "https://order-mobile-be.onrender.com/api/customers", data);
+      const response = await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers"] });
       toast({
         title: t('common.success'),
         description: customer ? "고객 정보가 업데이트되었습니다." : "새 고객이 추가되었습니다.",
@@ -128,11 +128,11 @@ export function CustomerFormModal({ isOpen, onClose, customer }: CustomerFormMod
 
   const updateMutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      const response = await apiRequest("PUT", `https://order-mobile-be.onrender.com/api/customers/${customer!.id}`, data);
+      const response = await apiRequest("PUT", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers/${customer!.id}`, data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/customers"] });
       toast({
         title: t('common.success'),
         description: "고객 정보가 업데이트되었습니다.",

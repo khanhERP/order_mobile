@@ -49,9 +49,9 @@ export function OrderEditView({ orderId, onBack }: OrderEditViewProps) {
 
   // Fetch order data
   const { data: order } = useQuery<Order>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/orders", orderId],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders", orderId],
     queryFn: async () => {
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/orders/${orderId}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${orderId}`);
       if (!response.ok) throw new Error("Failed to fetch order");
       return response.json();
     },
@@ -59,9 +59,9 @@ export function OrderEditView({ orderId, onBack }: OrderEditViewProps) {
 
   // Fetch order items
   const { data: orderItems, refetch: refetchOrderItems } = useQuery<OrderItem[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/order-items", orderId],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", orderId],
     queryFn: async () => {
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/order-items/${orderId}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${orderId}`);
       if (!response.ok) throw new Error("Failed to fetch order items");
       return response.json();
     },
@@ -69,9 +69,9 @@ export function OrderEditView({ orderId, onBack }: OrderEditViewProps) {
 
   // Fetch products
   const { data: products } = useQuery<Product[]>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/products"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products"],
     queryFn: async () => {
-      const response = await fetch("https://order-mobile-be.onrender.com/api/products");
+      const response = await fetch("https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/products");
       if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
       return data.filter((p: Product) => p.productType !== 2 && p.isActive !== false);
@@ -80,15 +80,15 @@ export function OrderEditView({ orderId, onBack }: OrderEditViewProps) {
 
   // Fetch categories
   const { data: categories } = useQuery({
-    queryKey: ["https://order-mobile-be.onrender.com/api/categories"],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/categories"],
   });
 
   // Fetch table info
   const { data: table } = useQuery<Table>({
-    queryKey: ["https://order-mobile-be.onrender.com/api/tables", order?.tableId],
+    queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables", order?.tableId],
     enabled: !!order?.tableId,
     queryFn: async () => {
-      const response = await fetch(`https://order-mobile-be.onrender.com/api/tables/${order?.tableId}`);
+      const response = await fetch(`https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables/${order?.tableId}`);
       if (!response.ok) throw new Error("Failed to fetch table");
       return response.json();
     },
@@ -165,7 +165,7 @@ export function OrderEditView({ orderId, onBack }: OrderEditViewProps) {
     mutationFn: async () => {
       // Add new items
       for (const item of cart) {
-        await apiRequest("POST", "https://order-mobile-be.onrender.com/api/order-items", {
+        await apiRequest("POST", "https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", {
           orderId: orderId,
           productId: item.productId,
           quantity: item.quantity,
@@ -176,21 +176,21 @@ export function OrderEditView({ orderId, onBack }: OrderEditViewProps) {
       // Update existing items
       for (const item of existingItems) {
         if (item.quantity === 0) {
-          await apiRequest("DELETE", `https://order-mobile-be.onrender.com/api/order-items/${item.id}`);
+          await apiRequest("DELETE", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`);
         } else {
-          await apiRequest("PATCH", `https://order-mobile-be.onrender.com/api/order-items/${item.id}`, {
+          await apiRequest("PATCH", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items/${item.id}`, {
             quantity: item.quantity,
           });
         }
       }
 
       // Recalculate order totals
-      await apiRequest("POST", `https://order-mobile-be.onrender.com/api/orders/${orderId}/recalculate`);
+      await apiRequest("POST", `https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders/${orderId}/recalculate`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/order-items", orderId] });
-      queryClient.invalidateQueries({ queryKey: ["https://order-mobile-be.onrender.com/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/order-items", orderId] });
+      queryClient.invalidateQueries({ queryKey: ["https://9c3c35f0-d45a-4ce8-ac45-ec905101bbe5-00-iqc6atklkasw.pike.replit.dev/api/tables"] });
       
       toast({
         title: "Thành công",
