@@ -1122,21 +1122,28 @@ export function MobileTableView({
 
                                     // Save order change history
                                     if (activeOrder) {
-                                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
-                                        orderId: activeOrder.id,
-                                        orderNumber: activeOrder.orderNumber,
-                                        ipAddress: window.location.hostname || "unknown",
-                                        userName: "Mobile User",
-                                        action: "delete_item",
-                                        detailedDescription: {
-                                          productName: item.productName,
-                                          oldQuantity: currentQuantity,
-                                          newQuantity: 0,
-                                          unitPrice: item.unitPrice,
-                                          note: "Xóa món do số lượng về 0",
+                                      await apiRequest(
+                                        "POST",
+                                        "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history",
+                                        {
+                                          orderId: activeOrder.id,
+                                          orderNumber: activeOrder.orderNumber,
+                                          ipAddress:
+                                            window.location.hostname ||
+                                            "unknown",
+                                          userName: "Mobile User",
+                                          action: "delete_item",
+                                          detailedDescription: {
+                                            productName: item.productName,
+                                            oldQuantity: currentQuantity,
+                                            newQuantity: 0,
+                                            unitPrice: item.unitPrice,
+                                            note: "Xóa món do số lượng về 0",
+                                          },
+                                          storeCode:
+                                            activeOrder.storeCode || null,
                                         },
-                                        storeCode: activeOrder.storeCode || null,
-                                      });
+                                      );
                                     }
 
                                     await refetchOrderItems();
@@ -1168,10 +1175,17 @@ export function MobileTableView({
                                 } else {
                                   // Decrease quantity by 1
                                   try {
-                                    const unitPrice = parseFloat(item.unitPrice);
-                                    const discount = parseFloat(item.discount || "0");
-                                    const itemSubtotal = unitPrice * newQuantity;
-                                    const newTotal = (itemSubtotal - discount).toFixed(2);
+                                    const unitPrice = parseFloat(
+                                      item.unitPrice,
+                                    );
+                                    const discount = parseFloat(
+                                      item.discount || "0",
+                                    );
+                                    const itemSubtotal =
+                                      unitPrice * newQuantity;
+                                    const newTotal = (
+                                      itemSubtotal - discount
+                                    ).toFixed(2);
 
                                     await apiRequest(
                                       "PUT",
@@ -1184,21 +1198,28 @@ export function MobileTableView({
 
                                     // Save order change history
                                     if (activeOrder) {
-                                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
-                                        orderId: activeOrder.id,
-                                        orderNumber: activeOrder.orderNumber,
-                                        ipAddress: window.location.hostname || "unknown",
-                                        userName: "Mobile User",
-                                        action: "reduce_quantity",
-                                        detailedDescription: {
-                                          productName: item.productName,
-                                          oldQuantity: currentQuantity,
-                                          newQuantity: newQuantity,
-                                          unitPrice: item.unitPrice,
-                                          note: "Giảm số lượng qua nút trừ",
+                                      await apiRequest(
+                                        "POST",
+                                        "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history",
+                                        {
+                                          orderId: activeOrder.id,
+                                          orderNumber: activeOrder.orderNumber,
+                                          ipAddress:
+                                            window.location.hostname ||
+                                            "unknown",
+                                          userName: "Mobile User",
+                                          action: "reduce_quantity",
+                                          detailedDescription: {
+                                            productName: item.productName,
+                                            oldQuantity: currentQuantity,
+                                            newQuantity: newQuantity,
+                                            unitPrice: item.unitPrice,
+                                            note: "Giảm số lượng qua nút trừ",
+                                          },
+                                          storeCode:
+                                            activeOrder.storeCode || null,
                                         },
-                                        storeCode: activeOrder.storeCode || null,
-                                      });
+                                      );
                                     }
 
                                     await refetchOrderItems();
@@ -1481,8 +1502,12 @@ export function MobileTableView({
         <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("tables.confirmCancelOrder")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("tables.enterCancelReason")}</AlertDialogDescription>
+              <AlertDialogTitle>
+                {t("tables.confirmCancelOrder")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("tables.enterCancelReason")}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="py-4">
               <Textarea
@@ -1539,7 +1564,9 @@ export function MobileTableView({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("tables.confirmDeleteItem")}</AlertDialogTitle>
+              <AlertDialogTitle>
+                {t("tables.confirmDeleteItem")}
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 {t("tables.itemSentToKitchenCannotDeleteDirectly")}
               </AlertDialogDescription>
@@ -1629,7 +1656,9 @@ export function MobileTableView({
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t("tables.decreaseItemQuantity")}</AlertDialogTitle>
+              <AlertDialogTitle>
+                {t("tables.decreaseItemQuantity")}
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 {t("tables.decreaseQuantityOrSplitWithNote")}
               </AlertDialogDescription>
@@ -1728,7 +1757,7 @@ export function MobileTableView({
                           {
                             quantity: newQuantity,
                             total: newTotal,
-                            notes: decreaseNote
+                            notes: decreaseNote,
                           },
                         );
                       } else {
@@ -1739,22 +1768,26 @@ export function MobileTableView({
                         );
                       }
 
-                      // Save order change history for split with note
-                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
-                        orderId: activeOrder.id,
-                        orderNumber: activeOrder.orderNumber,
-                        ipAddress: window.location.hostname || "unknown",
-                        userName: "Mobile User",
-                        action: "reduce_quantity",
-                        detailedDescription: {
-                          productName: itemToDecreaseWithNote.productName,
-                          oldQuantity: currentQuantity,
-                          newQuantity: newQuantity,
-                          unitPrice: itemToDecreaseWithNote.unitPrice,
-                          note: `Giảm số lượng món với ghi chú: ${decreaseNote}`,
+                      // Create new item with note
+                      const newItemTotal = (
+                        unitPrice * quantityToDecrease
+                      ).toFixed(2);
+                      await apiRequest(
+                        "POST",
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/items`,
+                        {
+                          items: [
+                            {
+                              productId: itemToDecreaseWithNote.productId,
+                              quantity: quantityToDecrease,
+                              unitPrice: itemToDecreaseWithNote.unitPrice,
+                              discount: "0.00", // Ensure discount is 0 for new item
+                              total: newItemTotal,
+                              notes: decreaseNote.trim(),
+                            },
+                          ],
                         },
-                        storeCode: activeOrder.storeCode || null,
-                      });
+                      );
                     } else {
                       // Case 2: Không có ghi chú - chỉ giảm số lượng
                       if (newQuantity > 0) {
@@ -1774,23 +1807,6 @@ export function MobileTableView({
                           `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDecreaseWithNote.id}`,
                         );
                       }
-
-                      // Save order change history for simple decrease
-                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
-                        orderId: activeOrder.id,
-                        orderNumber: activeOrder.orderNumber,
-                        ipAddress: window.location.hostname || "unknown",
-                        userName: "Mobile User",
-                        action: "reduce_quantity",
-                        detailedDescription: {
-                          productName: itemToDecreaseWithNote.productName,
-                          oldQuantity: currentQuantity,
-                          newQuantity: newQuantity,
-                          unitPrice: itemToDecreaseWithNote.unitPrice,
-                          note: "Giảm số lượng sản phẩm",
-                        },
-                        storeCode: activeOrder.storeCode || null,
-                      });
                     }
 
                     // Recalculate order totals
@@ -1881,67 +1897,140 @@ export function MobileTableView({
                   if (!itemToDeleteWithNote) return;
 
                   try {
-                    // Save order change history before deleting
-                    if (activeOrder) {
-                      const userName = "Mobile User";
-                      const ipAddress = "mobile";
+                    // Check if this is the last item in the order
+                    const isLastItem = orderItems && orderItems.length === 1;
 
-                      const detailedDescription = `Xóa món: ${itemToDeleteWithNote.productName} (SL: ${parseFloat(itemToDeleteWithNote.quantity || "1")}, Giá: ${Math.floor(parseFloat(itemToDeleteWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Lý do: ${deleteNote}`;
+                    if (isLastItem && activeOrder) {
+                      console.log(
+                        "🗑️ Last item in order - deleting entire order and updating table status",
+                      );
 
-                      await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
-                        orderId: activeOrder.id,
-                        orderNumber: activeOrder.orderNumber,
-                        action: "delete",
-                        detailedDescription,
-                        userName,
-                        ipAddress,
-                      });
-                    }
+                      // Delete the entire order
+                      await apiRequest(
+                        "PUT",
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/status`,
+                        { status: "cancelled" },
+                      );
 
-                    // Delete the item
-                    await apiRequest(
-                      "DELETE",
-                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
-                    );
+                      // Update table status to available
+                      if (table?.id) {
+                        await apiRequest(
+                          "PUT",
+                          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables/${table.id}/status`,
+                          { status: "available" },
+                        );
+                      }
 
-                    // Recalculate order totals
-                    if (activeOrder) {
+                      // Save order change history
                       await apiRequest(
                         "POST",
-                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                        {},
+                        "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history",
+                        {
+                          orderId: activeOrder.id,
+                          orderNumber: activeOrder.orderNumber,
+                          ipAddress: window.location.hostname || "unknown",
+                          userName: "Mobile User",
+                          action: "cancel_order",
+                          detailedDescription: {
+                            reason: "Xóa món cuối cùng trong đơn hàng",
+                            productName: itemToDeleteWithNote.productName,
+                            note: deleteNote,
+                          },
+                          storeCode: activeOrder.storeCode || null,
+                        },
                       );
+
+                      // Invalidate queries
+                      await queryClient.invalidateQueries({
+                        queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                      });
+                      await queryClient.invalidateQueries({
+                        queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables"],
+                      });
+
+                      setShowDeleteConfirmDialog(false);
+                      setItemToDeleteWithNote(null);
+                      setDeleteNote("");
+
+                      toast({
+                        title: "Đã xóa đơn hàng",
+                        description:
+                          "Đã xóa món cuối cùng và hủy đơn hàng, bàn đã được trả về trạng thái trống",
+                      });
+
+                      // Navigate back to table list
+                      onBack();
+                    } else {
+                      // Delete the order item
+                      await apiRequest(
+                        "DELETE",
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                      );
+
+                      // Save order change history
+                      if (activeOrder) {
+                        await apiRequest(
+                          "POST",
+                          "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history",
+                          {
+                            orderId: activeOrder.id,
+                            orderNumber: activeOrder.orderNumber,
+                            ipAddress:
+                              window.location.hostname || "unknown",
+                            userName: "Mobile User",
+                            action: "delete_item",
+                            detailedDescription: {
+                              productName:
+                                itemToDeleteWithNote.productName,
+                              quantity: parseFloat(
+                                itemToDeleteWithNote.quantity,
+                              ),
+                              unitPrice:
+                                itemToDeleteWithNote.unitPrice,
+                              note: deleteNote,
+                            },
+                            storeCode: activeOrder.storeCode || null,
+                          },
+                        );
+                      }
+
+                      await refetchOrderItems();
+
+                      // Recalculate order totals
+                      if (activeOrder) {
+                        await apiRequest(
+                          "POST",
+                          `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                          {},
+                        );
+                      }
+
+                      await queryClient.invalidateQueries({
+                        queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                      });
+
+                      setShowDeleteConfirmDialog(false);
+                      setItemToDeleteWithNote(null);
+                      setDeleteNote("");
+
+                      toast({
+                        title: "Đã xóa món",
+                        description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
+                      });
                     }
-
-                    // Refetch order items
-                    await refetchOrderItems();
-
-                    // Invalidate orders cache
-                    await queryClient.invalidateQueries({
-                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
-                    });
-
-                    toast({
-                      title: t("tables.itemDeleted"),
-                      description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
-                    });
-
-                    // Close dialog
-                    setShowDeleteConfirmDialog(false);
-                    setDeleteNote("");
-                    setItemToDeleteWithNote(null);
                   } catch (error) {
-                    console.error("❌ Error deleting item:", error);
+                    console.error("❌ Error deleting order item:", error);
                     toast({
-                      title: t("common.error"),
-                      description: t("tables.cannotDeleteItem"),
+                      title: "Lỗi",
+                      description: "Không thể xóa món",
                       variant: "destructive",
                     });
                   }
                 }}
                 className="bg-red-600 hover:bg-red-700"
               >
-                {t("tables.deleteItem")}
+                <Trash2 className="w-4 h-4 mr-2" />
+                Xóa món
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -2227,7 +2316,9 @@ export function MobileTableView({
 
                       {/* Item Discount */}
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600">{t("common.itemDiscount")}:</span>
+                        <span className="text-gray-600">
+                          {t("common.itemDiscount")}:
+                        </span>
                         <Input
                           type="text"
                           inputMode="numeric"
@@ -2273,7 +2364,9 @@ export function MobileTableView({
                                 discountVnd = 0;
                                 toast({
                                   title: t("common.error"),
-                                  description: t("tables.discountCannotExceedPrice"),
+                                  description: t(
+                                    "tables.discountCannotExceedPrice",
+                                  ),
                                   variant: "destructive",
                                 });
                               }
@@ -2436,64 +2529,66 @@ export function MobileTableView({
                       if (value > 0) {
                         setDiscountSource("order");
 
-                        // Check if we need to recalculate item discounts
-                        const currentItemDiscountsSum = tempCart.reduce(
-                          (sum, item) => sum + (item.discountVnd || 0),
+                        // Calculate total discount in VND based on discount type
+                        let totalDiscountVnd = 0;
+                        if (orderDiscountType === "percent") {
+                          // Convert percentage to VND
+                          totalDiscountVnd = Math.round(
+                            (tempCartSubtotalBeforeDiscount * value) / 100,
+                          );
+                        } else {
+                          // Already in VND
+                          totalDiscountVnd = value;
+                        }
+
+                        // Redistribute discount to items proportionally
+                        const totalBeforeDiscount = tempCart.reduce(
+                          (sum, item) => {
+                            return (
+                              sum +
+                              parseFloat(item.product.price) * item.quantity
+                            );
+                          },
                           0,
                         );
 
-                        // Only recalculate if order discount differs from sum of item discounts
-                        if (
-                          orderDiscountType === "vnd" &&
-                          Math.abs(value - currentItemDiscountsSum) > 0.01
-                        ) {
-                          // Redistribute order discount to items proportionally
-                          const totalBeforeDiscount = tempCart.reduce(
-                            (sum, item) => {
-                              return (
-                                sum +
-                                parseFloat(item.product.price) * item.quantity
-                              );
-                            },
-                            0,
-                          );
+                        let allocatedDiscountSum = 0;
+                        const updatedCart = tempCart.map((item, index) => {
+                          const isLastItem = index === tempCart.length - 1;
+                          const itemTotal =
+                            parseFloat(item.product.price) * item.quantity;
 
-                          let allocatedDiscountSum = 0;
-                          const updatedCart = tempCart.map((item, index) => {
-                            const isLastItem = index === tempCart.length - 1;
-                            const itemTotal =
-                              parseFloat(item.product.price) * item.quantity;
+                          let itemDiscount = 0;
+                          if (isLastItem) {
+                            // Last item gets remaining discount
+                            itemDiscount = Math.max(
+                              0,
+                              totalDiscountVnd - allocatedDiscountSum,
+                            );
+                          } else {
+                            // Proportional allocation
+                            itemDiscount =
+                              totalBeforeDiscount > 0
+                                ? Math.round(
+                                    (totalDiscountVnd * itemTotal) /
+                                      totalBeforeDiscount,
+                                  )
+                                : 0;
+                            allocatedDiscountSum += itemDiscount;
+                          }
 
-                            let itemDiscount = 0;
-                            if (isLastItem) {
-                              // Last item gets remaining discount
-                              itemDiscount = Math.max(
-                                0,
-                                value - allocatedDiscountSum,
-                              );
-                            } else {
-                              // Proportional allocation
-                              itemDiscount =
-                                totalBeforeDiscount > 0
-                                  ? Math.round(
-                                      (value * itemTotal) / totalBeforeDiscount,
-                                    )
-                                  : 0;
-                              allocatedDiscountSum += itemDiscount;
-                            }
+                          return {
+                            ...item,
+                            discountVnd: itemDiscount, // Store VND discount
+                            discount: 0, // Clear percentage discount
+                            discountType: "vnd" as
+                              | "percent"
+                              | "amount"
+                              | "vnd",
+                          };
+                        });
 
-                            return {
-                              ...item,
-                              discountVnd: itemDiscount, // Store VND discount
-                              discountType: "vnd" as
-                                | "percent"
-                                | "amount"
-                                | "vnd",
-                            };
-                          });
-
-                          setTempCart(updatedCart);
-                        }
+                        setTempCart(updatedCart);
                       } else {
                         // Clear discount source and all item discounts when order discount is cleared
                         setDiscountSource(null);
@@ -2514,63 +2609,118 @@ export function MobileTableView({
                     value={orderDiscountType}
                     onValueChange={(value: "percent" | "amount" | "vnd") => {
                       setOrderDiscountType(value);
-                      // If switching to percent, recalculate item discounts based on percentage
+                      
                       if (value === "percent") {
-                        const updatedCart = tempCart.map((item) => {
-                          const basePrice = parseFloat(item.product.price);
-                          const quantity = item.quantity;
-                          const currentItemDiscountVnd = item.discountVnd || 0; // Use VND discount
-
-                          // Calculate the percentage equivalent of the current VND discount
-                          const itemTotal = basePrice * quantity;
-                          const discountPercentage =
-                            itemTotal > 0
-                              ? (currentItemDiscountVnd / itemTotal) * 100
-                              : 0;
-
-                          return {
-                            ...item,
-                            discount: discountPercentage, // Store % for display
-                            discountVnd: 0, // Clear VND value when switching to percent
-                            discountType: "percent",
-                          };
-                        });
-                        setTempCart(updatedCart);
-                        setOrderDiscount(0); // Reset order discount to 0 when changing type to percent
-                      } else if (value === "vnd") {
-                        // If switching to VND, ensure item discounts are treated as VND
-                        const updatedCart = tempCart.map((item) => {
-                          // If discount was percent, convert it to VND based on current price
-                          if (
-                            item.discountType === "percent" &&
-                            item.discount !== undefined
-                          ) {
+                        // Switching to percent mode
+                        // If we have a VND discount amount, convert it to percentage
+                        if (orderDiscount > 0 && tempCartSubtotalBeforeDiscount > 0) {
+                          const discountPercent = Math.round(
+                            (orderDiscount / tempCartSubtotalBeforeDiscount) * 100
+                          );
+                          setOrderDiscount(discountPercent);
+                          
+                          // Redistribute as percentage
+                          const updatedCart = tempCart.map((item) => {
                             const basePrice = parseFloat(item.product.price);
                             const quantity = item.quantity;
-                            const discountVnd = Math.round(
-                              (basePrice * quantity * item.discount) / 100,
+                            const itemTotal = basePrice * quantity;
+                            const itemDiscountVnd = Math.round(
+                              (itemTotal * discountPercent) / 100
                             );
+                            
                             return {
                               ...item,
-                              discount: discountVnd, // Store VND for display
-                              discountVnd: discountVnd, // Store VND for calculation
-                              discountType: "vnd",
+                              discount: discountPercent,
+                              discountVnd: itemDiscountVnd,
+                              discountType: "percent" as "percent" | "amount" | "vnd",
                             };
-                          }
-                          // Ensure discountVnd is set even if no discount was applied previously
-                          return {
+                          });
+                          setTempCart(updatedCart);
+                          setDiscountSource("order");
+                        } else {
+                          setOrderDiscount(0);
+                          const updatedCart = tempCart.map((item) => ({
+                            ...item,
+                            discount: 0,
+                            discountVnd: 0,
+                            discountType: "percent" as "percent" | "amount" | "vnd",
+                          }));
+                          setTempCart(updatedCart);
+                          setDiscountSource(null);
+                        }
+                      } else if (value === "vnd") {
+                        // Switching to VND mode
+                        // If we have a percent discount, convert it to VND
+                        if (orderDiscount > 0 && orderDiscountType === "percent") {
+                          const discountVnd = Math.round(
+                            (tempCartSubtotalBeforeDiscount * orderDiscount) / 100
+                          );
+                          setOrderDiscount(discountVnd);
+                          
+                          // Redistribute as VND proportionally
+                          let allocatedDiscount = 0;
+                          const updatedCart = tempCart.map((item, index) => {
+                            const isLastItem = index === tempCart.length - 1;
+                            const basePrice = parseFloat(item.product.price);
+                            const quantity = item.quantity;
+                            const itemTotal = basePrice * quantity;
+                            
+                            let itemDiscountVnd = 0;
+                            if (isLastItem) {
+                              itemDiscountVnd = Math.max(0, discountVnd - allocatedDiscount);
+                            } else {
+                              itemDiscountVnd = Math.round(
+                                (discountVnd * itemTotal) / tempCartSubtotalBeforeDiscount
+                              );
+                              allocatedDiscount += itemDiscountVnd;
+                            }
+                            
+                            return {
+                              ...item,
+                              discount: 0,
+                              discountVnd: itemDiscountVnd,
+                              discountType: "vnd" as "percent" | "amount" | "vnd",
+                            };
+                          });
+                          setTempCart(updatedCart);
+                          setDiscountSource("order");
+                        } else if (orderDiscount > 0) {
+                          // Already in VND, just ensure items are updated
+                          const discountVnd = orderDiscount;
+                          let allocatedDiscount = 0;
+                          const updatedCart = tempCart.map((item, index) => {
+                            const isLastItem = index === tempCart.length - 1;
+                            const basePrice = parseFloat(item.product.price);
+                            const quantity = item.quantity;
+                            const itemTotal = basePrice * quantity;
+                            
+                            let itemDiscountVnd = 0;
+                            if (isLastItem) {
+                              itemDiscountVnd = Math.max(0, discountVnd - allocatedDiscount);
+                            } else {
+                              itemDiscountVnd = Math.round(
+                                (discountVnd * itemTotal) / tempCartSubtotalBeforeDiscount
+                              );
+                              allocatedDiscount += itemDiscountVnd;
+                            }
+                            
+                            return {
+                              ...item,
+                              discount: 0,
+                              discountVnd: itemDiscountVnd,
+                              discountType: "vnd" as "percent" | "amount" | "vnd",
+                            };
+                          });
+                          setTempCart(updatedCart);
+                          setDiscountSource("order");
+                        } else {
+                          const updatedCart = tempCart.map((item) => ({
                             ...item,
                             discountVnd: item.discountVnd || 0,
-                            discountType: "vnd",
-                          };
-                        });
-                        setTempCart(updatedCart);
-                        // Recalculate order discount based on the sum of VND item discounts
-                        const totalItemDiscountVnd = updatedCart.reduce(
-                          (sum, cartItem) => sum + (cartItem.discountVnd || 0),
-                          0,
-                        );
-                        setOrderDiscount(totalItemDiscountVnd);
+                            discountType: "vnd" as "percent" | "amount" | "vnd",
+                          }));
+                          setTempCart(updatedCart);
+                        }
                       }
                     }}
                   >
@@ -2778,8 +2928,12 @@ export function MobileTableView({
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("tables.confirmCancelOrder")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("tables.enterCancelReason")}</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("tables.confirmCancelOrder")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("tables.enterCancelReason")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Textarea
@@ -2926,7 +3080,9 @@ export function MobileTableView({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("tables.decreaseItemQuantity")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("tables.decreaseItemQuantity")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("tables.decreaseQuantityOrSplitWithNote")}
             </AlertDialogDescription>
@@ -3164,60 +3320,132 @@ export function MobileTableView({
                 if (!itemToDeleteWithNote) return;
 
                 try {
-                  // Save order change history before deleting
-                  if (activeOrder) {
-                    const userName = "Mobile User";
-                    const ipAddress = "mobile";
+                  // Check if this is the last item in the order
+                  const isLastItem = orderItems && orderItems.length === 1;
 
-                    const detailedDescription = `Xóa món: ${itemToDeleteWithNote.productName} (SL: ${parseFloat(itemToDeleteWithNote.quantity || "1")}, Giá: ${Math.floor(parseFloat(itemToDeleteWithNote.unitPrice)).toLocaleString("vi-VN")} ₫). Lý do: ${deleteNote}`;
+                  if (isLastItem && activeOrder) {
+                    console.log(
+                      "🗑️ Last item in order - deleting entire order and updating table status",
+                    );
 
-                    await apiRequest("POST", "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history", {
-                      orderId: activeOrder.id,
-                      orderNumber: activeOrder.orderNumber,
-                      action: "delete_item",
-                      detailedDescription,
-                      userName,
-                      ipAddress,
-                    });
-                  }
+                    // Delete the entire order
+                    await apiRequest(
+                      "PUT",
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/status`,
+                      { status: "cancelled" },
+                    );
 
-                  // Delete the item
-                  await apiRequest(
-                    "DELETE",
-                    `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
-                  );
+                    // Update table status to available
+                    if (table?.id) {
+                      await apiRequest(
+                        "PUT",
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables/${table.id}/status`,
+                        { status: "available" },
+                      );
+                    }
 
-                  // Recalculate order totals
-                  if (activeOrder) {
+                    // Save order change history
                     await apiRequest(
                       "POST",
-                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
-                      {},
+                      "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history",
+                      {
+                        orderId: activeOrder.id,
+                        orderNumber: activeOrder.orderNumber,
+                        ipAddress: window.location.hostname || "unknown",
+                        userName: "Mobile User",
+                        action: "cancel_order",
+                        detailedDescription: {
+                          reason: "Xóa món cuối cùng trong đơn hàng",
+                          productName: itemToDeleteWithNote.productName,
+                          note: deleteNote,
+                        },
+                        storeCode: activeOrder.storeCode || null,
+                      },
                     );
+
+                    // Invalidate queries
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                    });
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/tables"],
+                    });
+
+                    setShowDeleteConfirmDialog(false);
+                    setItemToDeleteWithNote(null);
+                    setDeleteNote("");
+
+                    toast({
+                      title: "Đã xóa đơn hàng",
+                      description:
+                        "Đã xóa món cuối cùng và hủy đơn hàng, bàn đã được trả về trạng thái trống",
+                    });
+
+                    // Navigate back to table list
+                    onBack();
+                  } else {
+                    // Delete the order item
+                    await apiRequest(
+                      "DELETE",
+                      `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-items/${itemToDeleteWithNote.id}`,
+                    );
+
+                    // Save order change history
+                    if (activeOrder) {
+                      await apiRequest(
+                        "POST",
+                        "https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/order-change-history",
+                        {
+                          orderId: activeOrder.id,
+                          orderNumber: activeOrder.orderNumber,
+                          ipAddress:
+                            window.location.hostname || "unknown",
+                          userName: "Mobile User",
+                          action: "delete_item",
+                          detailedDescription: {
+                            productName:
+                              itemToDeleteWithNote.productName,
+                            quantity: parseFloat(
+                              itemToDeleteWithNote.quantity,
+                            ),
+                            unitPrice:
+                              itemToDeleteWithNote.unitPrice,
+                            note: deleteNote,
+                          },
+                          storeCode: activeOrder.storeCode || null,
+                        },
+                      );
+                    }
+
+                    await refetchOrderItems();
+
+                    // Recalculate order totals
+                    if (activeOrder) {
+                      await apiRequest(
+                        "POST",
+                        `https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders/${activeOrder.id}/recalculate`,
+                        {},
+                      );
+                    }
+
+                    await queryClient.invalidateQueries({
+                      queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
+                    });
+
+                    setShowDeleteConfirmDialog(false);
+                    setItemToDeleteWithNote(null);
+                    setDeleteNote("");
+
+                    toast({
+                      title: "Đã xóa món",
+                      description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
+                    });
                   }
-
-                  // Refetch order items
-                  await refetchOrderItems();
-
-                  // Invalidate orders cache
-                  await queryClient.invalidateQueries({
-                    queryKey: ["https://ae5ea441-9a81-4f0c-badc-1b445a58a294-00-bx7jg4f6rly0.sisko.replit.dev/api/orders"],
-                  });
-
-                  toast({
-                    title: t("tables.itemDeleted"),
-                    description: `Đã xóa "${itemToDeleteWithNote.productName}" khỏi đơn hàng`,
-                  });
-
-                  // Close dialog
-                  setShowDeleteConfirmDialog(false);
-                  setDeleteNote("");
-                  setItemToDeleteWithNote(null);
                 } catch (error) {
-                  console.error("❌ Error deleting item:", error);
+                  console.error("❌ Error deleting order item:", error);
                   toast({
-                    title: t("common.error"),
-                    description: t("tables.cannotDeleteItem"),
+                    title: "Lỗi",
+                    description: "Không thể xóa món",
                     variant: "destructive",
                   });
                 }

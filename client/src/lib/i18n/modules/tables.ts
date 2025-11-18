@@ -7,6 +7,7 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
     all: "전체",
     description: "테이블 상태를 확인하고 주문을 관리하세요",
     backToPOS: "POS로 돌아가기",
+    served: "서빙 완료",
     tableStatus: "테이블 현황",
     orderManagement: "주문 관리",
     tableSettings: "테이블 설정",
@@ -198,6 +199,7 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
     title: "Table Management",
     all: "All",
     lowStock: "Low Stock",
+    served: "Served",
     addItemsToOrder: "Add Items to Order",
     clearCart: "Clear Cart",
     description: "Check table status and manage orders",
@@ -390,6 +392,7 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
   vi: {
     title: "Quản lý bàn",
     all: "Tất cả",
+    served: "Đã phục vụ",
     clearCart: "Xóa giỏ hàng",
     lowStock: "Hết hàng",
     addItemsToOrder: "Thêm món vào đơn hàng",
