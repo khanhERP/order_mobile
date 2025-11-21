@@ -617,7 +617,7 @@ export function MobileTableView({
           // Step 3: Only recalculate if new items have NO discount
           // This prevents redistribution of existing item discounts
           const hasNewItemDiscounts = newItems.some(
-            (item) => parseFloat(item.discount) > 0,
+            (item) => parseFloat(item.discount) >= 0,
           );
 
           if (hasNewItemDiscounts) {
